@@ -4,9 +4,9 @@
 
 
 <body>
-    <h1><a href="/songs">BACK </a></h1>
+    <h1><a href="/">BACK </a></h1>
     <div class = button>
-        <form action="/songs/add/" method="post">
+        <form action="/add/" method="post">
             {% csrf_token %}
             Spotify URL:
             <input type="text" name="spotifyurl" value="" maxlength="100" />
@@ -18,7 +18,7 @@
         <div class = container>
             <img src="{{ rating.song.coverart }}" class="image1"/>
             <div class = data>
-                <a href="/songs/{{ rating.Song.Value }}/">{{rating.song.name}}: </a>
+                <a href="/{{ rating.Song.Value }}/">{{rating.song.name}}: </a>
                 <h3>{{ rating.value }}</h3>
                 <h3>{{ rating.song.artist }}</h3>
                 <h3>{{ rating.song.album }}</h3>
