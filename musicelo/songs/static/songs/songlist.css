@@ -1,0 +1,20 @@
+.container {
+    padding-left: 10px;
+    display: flex;
+    align-items: center;
+    margin: 15px;
+   }
+
+.image1 {
+    height: 235px;
+    width: 235px;
+}
+
+.data {
+    font-family:open sans,sans-serif;
+    padding-left: 20px;
+}
+
+.title {
+    font-family:open sans,sans-serif;
+}
