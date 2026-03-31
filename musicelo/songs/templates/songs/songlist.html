@@ -1,0 +1,20 @@
+{% load static %}
+
+<link rel="stylesheet" href="{% static 'songs/songlist.css' %}">
+<h1><a href="/songs">BACK </a></h1>
+{% if Song_List %}
+    {% for song in Song_List %}
+        <div class = container>
+            <img src="{{ song.coverart }}" class="image1"/>
+            <div class = data>
+                <a href="/songs/{{ song.Song.Value }}/">{{song.name}}: </a>
+                <h3>{{ song.artist }}</h3>
+                <h3>{{ song.album }}</h3>
+            </div>
+        </div>
+    {% endfor %}
+{% else %}
+    <p>No polls are available.</p>
+{% endif %} 
+
+

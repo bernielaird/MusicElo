@@ -1,0 +1,105 @@
+* {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    outline: 0;
+    font-size: 100%;
+    vertical-align: baseline;
+    background: transparent;
+}
+
+
+#container {
+    width: 100px;
+    height: 100px;
+    position: relative;
+  }
+
+
+.image1 {
+    background: url(image2);
+    background-repeat: no-repeat;
+    width: 50%;
+    position: absolute;
+    left: 0px;
+    height: 100%;
+    overflow: hidden;
+    opacity: 1;
+ }
+
+.image1:hover {
+   filter: brightness(85%);
+   }
+   
+.image2:hover {
+   filter: brightness(85%);
+   }
+   
+ .image2 {
+    background: url(image2);
+    background-repeat: no-repeat;
+    width: 50%;
+    position: absolute;
+    right: 0px;
+    height: 100%;
+    overflow: hidden;
+    opacity: 1;
+ }
+
+ .back {
+    text-shadow: 1px 2px black;
+    text-decoration: none!important;
+    color: white;
+    font-size: 40px;
+    position: relative;
+    display: inline-block;
+    padding: 4px 8px;
+    /*background-color: #f1f1f1;*/
+ }
+
+ .back:hover {
+   filter: brightness(85%);
+   }
+  
+ .text {
+   font-family:open sans,sans-serif;
+   text-shadow: 3px 0px black;
+   cursor: default;
+   text-decoration:none;
+   color: white;
+   text-align: center;
+   font-size: 30px;
+   pointer-events: none
+ }
+
+ .first {
+    position: fixed;
+    top: 50%;
+    left: 25%;
+    transform: translate(-50%, -50%);
+ }
+
+ .second {
+    position: fixed;
+    top: 50%;
+    right: 25%;
+    transform: translate(50%, -50%);
+ }
+
+ .firstembed {
+    margin-left:-10%;
+    left: 25%;
+    top: 65%;
+    width: 20%; 
+    height: 125px; 
+    position: absolute;
+ }
+
+ .secondembed {
+    margin-right:-10%;
+    right: 25%;
+    top: 65%;
+    width: 20%; 
+    height: 125px; 
+    position: absolute;
+ }

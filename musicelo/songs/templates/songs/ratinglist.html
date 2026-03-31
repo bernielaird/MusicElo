@@ -1,0 +1,33 @@
+{% load static %}
+
+<link rel="stylesheet" href="{% static 'songs/ratinglist.css' %}">
+
+
+<body>
+    <h1><a href="/songs">BACK </a></h1>
+    <div class = button>
+        <form action="/songs/add/" method="post">
+            {% csrf_token %}
+            Spotify URL:
+            <input type="text" name="spotifyurl" value="" maxlength="100" />
+            <input type="submit" value="Submit" />
+            </form>
+    </div>
+    {% if Rating_List %}
+        {% for rating in Rating_List %}
+        <div class = container>
+            <img src="{{ rating.song.coverart }}" class="image1"/>
+            <div class = data>
+                <a href="/songs/{{ rating.Song.Value }}/">{{rating.song.name}}: </a>
+                <h3>{{ rating.value }}</h3>
+                <h3>{{ rating.song.artist }}</h3>
+                <h3>{{ rating.song.album }}</h3>
+            </div>   
+        </div>                                                
+        {% endfor %}
+    {% else %}
+        <p>No polls are available.</p>
+    {% endif %} 
+</body>
+
+
