@@ -18,11 +18,11 @@
     </div>
 </header>
 <body>
-    <main>
+    <main class = "center">
         <div class = button>
             <form action="/add/" method="post">
                 {% csrf_token %}
-                Spotify URL:
+                Spotify Song URL:
                 <input type="text" name="spotifyurl" value="" maxlength="100" />
                 <input type="submit" value="Submit" />
                 </form>

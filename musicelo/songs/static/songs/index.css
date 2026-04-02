@@ -40,7 +40,7 @@ body {
     display: block;
     padding: 14px;
     border-radius: 10px;
-    background: #1db954;
+    background: #8e4909;
     color: white;
     text-decoration: none;
     font-weight: 600;
@@ -48,6 +48,6 @@ body {
 }
 
 .nav-links a:hover {
-    background: #179443;
+    background: #8e4909;
     transform: translateY(-2px);
 }
