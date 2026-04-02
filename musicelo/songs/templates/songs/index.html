@@ -1,15 +1,32 @@
 {% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Album Elo</title>
+    <link rel="stylesheet" href="{% static 'songs/index.css' %}">
+</head>
+<body>
+    <div class="home-card">
+        <h1>Album Elo</h1>
+        <p>Rate songs, compare matchups, and build your rankings.</p>
 
-<link rel="stylesheet" href="{% static 'songs/index.css' %}">
+        {% if user.is_authenticated %}
+            <div class="nav-links">
+                <a href="/ratinglist/">Add a Song</a>
+                <a href="/songlist/">All your added songs</a>
+                <a href="/versus/">Start Versus</a>
 
-<ul>
-    <li><h1><a href="/login">login</a></h1></li>
-        <hr>
-    <li><h1><a href="/singup">singup</a></h1></li>
-        <hr>
-    <li><h1><a href="/songlist">songlist</a></h1></li>
-        <hr>
-    <li><h1><a href="/ratinglist">ratinglist</a></h1></li>
-        <hr>
-    <li><h1><a href="/versus">versus</a></h1></li>
-</ul>
+                <form method="post" action="/logout/">
+                    {% csrf_token %}
+                    <button style="margin-top:10px;">Logout</button>
+                </form>
+            </div>
+        {% else %}
+            <div class="nav-links">
+                <a href="/login/">Login</a>
+                <a href="/signup/">Sign Up</a>
+            </div>
+        {% endif %}
+    </div>
+</body>
+</html>
