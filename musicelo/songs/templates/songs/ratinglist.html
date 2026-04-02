@@ -1,19 +1,33 @@
 {% load static %}
-
-<link rel="stylesheet" href="{% static 'songs/ratinglist.css' %}">
-
-
-<body>
-    <h1><a href="/">BACK </a></h1>
-    <div class = button>
-        <form action="/add/" method="post">
-            {% csrf_token %}
-            Spotify URL:
-            <input type="text" name="spotifyurl" value="" maxlength="100" />
-            <input type="submit" value="Submit" />
-            </form>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" href="{% static 'songs/ratinglist.css' %}">
+    <link rel="stylesheet" href="{% static 'songs/styles.css' %}">
+    <link rel="icon" href="{% static 'images/foxv1.png' %}" type="image/png">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Contact{% endblock %}</title>
+</head>
+<header class="bottom-bar">
+    <div class="bottom-left">
+        <a href="/" class="name">Home</a>
+        <a href="/ratinglist/">Add</a>
+        <a href="/songlist/">List</a>
+        <a href="/versus/">Versus</a>
     </div>
-
+</header>
+<body>
+    <main>
+        <div class = button>
+            <form action="/add/" method="post">
+                {% csrf_token %}
+                Spotify URL:
+                <input type="text" name="spotifyurl" value="" maxlength="100" />
+                <input type="submit" value="Submit" />
+                </form>
+        </div>
+    </main>
 </body>
 
 

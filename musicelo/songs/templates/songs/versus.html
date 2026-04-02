@@ -1,7 +1,15 @@
 {% load static %}
 
-<link rel="stylesheet" href="{% static 'songs/versus.css' %}">
-
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" href="{% static 'songs/styles.css' %}">
+    <link rel="stylesheet" href="{% static 'songs/versus.css' %}">
+    <link rel="icon" href="{% static 'images/foxv1.png' %}" type="image/png">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Song List{% endblock %}</title>
+</head>
 
 <div class="containerBox">
     <a href="/versus/{{ firstid }}/{{ secondid }}">
@@ -33,3 +41,12 @@
         </iframe>
     </div>
 </div>
+
+<footer class="bottom-bar">
+    <div class="bottom-left">
+        <a href="/" class="name">Home</a>
+        <a href="/ratinglist/">Add</a>
+        <a href="/songlist/">List</a>
+        <a href="/versus/">Versus</a>
+    </div>
+</footer>
