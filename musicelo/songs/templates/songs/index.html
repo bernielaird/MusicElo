@@ -1,9 +1,13 @@
 {% load static %}
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Album Elo</title>
+    <link rel="stylesheet" href="{% static 'songs/styles.css' %}">
     <link rel="stylesheet" href="{% static 'songs/index.css' %}">
+    <link rel="icon" href="{% static 'images/foxv1.png' %}" type="image/png">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Log In{% endblock %}</title>
 </head>
 <body>
     <div class="home-card">
@@ -29,5 +33,4 @@
         {% endif %}
     </div>
 </body>
-
 </html>
