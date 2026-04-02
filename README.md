@@ -16,4 +16,4 @@ make a .env in root with:
 * SPOTIPY_CLIENT_ID=
 * SPOTIPY_CLIENT_SECRET=
 * SPOTIPY_REDIRECT_URI=http://127.0.0.1:8000/callback/
-
+run python manage.py runserver
