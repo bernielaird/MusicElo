@@ -1,3 +1,53 @@
-li a {
-    color: green;
+body {
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: #f4f4f4;
+    font-family: Arial, sans-serif;
+}
+
+.home-card {
+    width: 100%;
+    max-width: 420px;
+    background: white;
+    padding: 40px 32px;
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+    text-align: center;
+}
+
+.home-card h1 {
+    margin: 0 0 10px 0;
+    font-size: 2rem;
+    color: #111;
+}
+
+.home-card p {
+    margin: 0 0 28px 0;
+    color: #666;
+    font-size: 0.95rem;
+}
+
+.nav-links {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.nav-links a {
+    display: block;
+    padding: 14px;
+    border-radius: 10px;
+    background: #1db954;
+    color: white;
+    text-decoration: none;
+    font-weight: 600;
+    transition: 0.2s;
+}
+
+.nav-links a:hover {
+    background: #179443;
+    transform: translateY(-2px);
 }
