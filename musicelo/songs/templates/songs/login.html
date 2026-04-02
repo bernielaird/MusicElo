@@ -1,22 +1,31 @@
+{% load static %}
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Log In</title>
+    <link rel="stylesheet" href="{% static 'songs/styles.css' %}">
+    <link rel="icon" href="{% static 'images/foxv1.png' %}" type="image/png">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Log In{% endblock %}</title>
 </head>
-<body>
+<body class="page-layout log-layout">
     <h1>Log In</h1>
 
         <form method="post">
             {% csrf_token %}
 
-            <label>Username</label>
-            {{ form.username }}
+            <div class="form-group">
+                <label>Username</label>
+                {{ form.username }}
+            </div>
 
-            <label>Password</label>
-            {{ form.password }}
+            <div class="form-group">
+                <label>Password</label>
+                {{ form.password }}
+            </div>
 
             <button type="submit">Log In</button>
         </form>
-    <p>Need an account? <a href="/signup/">Sign up</a></p>
+    <p>Need an account? <a href="/signup/" class = "clickcolor">Sign up</a></p>
 </body>
 </html>

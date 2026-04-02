@@ -1,17 +1,39 @@
+{% load static %}
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <link rel="stylesheet" href="{% static 'songs/styles.css' %}">
+    <link rel="icon" href="{% static 'images/foxv1.png' %}" type="image/png">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sign Up</title>
 </head>
-<body>
-    <h1>Create Account</h1>
+<body class="page-layout sign-layout">
+    <main>
+            <h1>Create Account</h1>
+            <form method="post" class="auth-form">
+                {% csrf_token %}
 
-    <form method="post">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit">Sign Up</button>
-    </form>
+                <div class="form-group">
+                    <label for="{{ form.username.id_for_label }}">Username</label>
+                    {{ form.username }}
+                </div>
 
-    <p>Already have an account? <a href="/login/">Log in</a></p>
+                <div class="form-group">
+                    <label for="{{ form.password1.id_for_label }}">Password</label>
+                    {{ form.password1 }}
+                </div>
+
+                <div class="form-group">
+                    <label for="{{ form.password2.id_for_label }}">Confirm Password</label>
+                    {{ form.password2 }}
+                </div>
+
+                <button type="submit">Sign Up</button>
+            </form>
+
+            <p>Already have an account? <a href="/login/" class = "clickcolor">Log in</a></p>
+        </div>
+    </main>
 </body>
 </html>
