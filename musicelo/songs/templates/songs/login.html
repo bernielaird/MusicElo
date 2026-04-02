@@ -6,12 +6,17 @@
 <body>
     <h1>Log In</h1>
 
-    <form method="post">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit">Log In</button>
-    </form>
+        <form method="post">
+            {% csrf_token %}
 
+            <label>Username</label>
+            {{ form.username }}
+
+            <label>Password</label>
+            {{ form.password }}
+
+            <button type="submit">Log In</button>
+        </form>
     <p>Need an account? <a href="/signup/">Sign up</a></p>
 </body>
 </html>

@@ -9,7 +9,9 @@ from spotipy.oauth2 import SpotifyClientCredentials
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import UserCreationForm
 from urllib.parse import urlparse
-
+from django.contrib.auth.forms import AuthenticationForm
+from django.contrib.auth import login as auth_login, logout as auth_logout
+from django.shortcuts import render, redirect
 
 class IndexView(generic.ListView):
     template_name = "songs/index.html"
@@ -31,9 +33,33 @@ def signup(request):
     return render(request, "songs/signup.html", {"form": form})
 
 
+def login_view(request):
+    if request.method == "POST":
+        form = AuthenticationForm(request, data=request.POST)
+        if form.is_valid():
+            user = form.get_user()
+            auth_login(request, user)
+            return redirect("/")
+    else:
+        form = AuthenticationForm()
+
+    return render(request, "songs/login.html", {"form": form})
+
+def logout_view(request):
+    auth_logout(request)
+    return redirect("/login/")
+
+'''
 def songlist(request):
     Song_List = Song.objects.order_by("name")
     context = {"Song_List": Song_List}
+    return render(request, "songs/songlist.html", context)
+'''
+
+@login_required
+def songlist(request):
+    Rating_List = Rating.objects.filter(user=request.user).order_by("-value")
+    context = {"Rating_List": Rating_List}
     return render(request, "songs/songlist.html", context)
 
 

@@ -13,21 +13,7 @@
             <input type="submit" value="Submit" />
             </form>
     </div>
-    {% if Rating_List %}
-        {% for rating in Rating_List %}
-        <div class = container>
-            <img src="{{ rating.song.coverart }}" class="image1"/>
-            <div class = data>
-                <a href="/{{ rating.Song.Value }}/">{{rating.song.name}}: </a>
-                <h3>{{ rating.value }}</h3>
-                <h3>{{ rating.song.artist }}</h3>
-                <h3>{{ rating.song.album }}</h3>
-            </div>   
-        </div>                                                
-        {% endfor %}
-    {% else %}
-        <p>No polls are available.</p>
-    {% endif %} 
+
 </body>
 
 
