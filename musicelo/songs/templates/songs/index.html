@@ -1,36 +1,33 @@
+{% extends "songs/base.html" %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <link rel="stylesheet" href="{% static 'songs/styles.css' %}">
+
+{% block title %}Home{% endblock %}
+
+{% block extra_css %}
     <link rel="stylesheet" href="{% static 'songs/index.css' %}">
-    <link rel="icon" href="{% static 'images/foxv1.png' %}" type="image/png">
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Log In{% endblock %}</title>
-</head>
-<body>
+{% endblock %}
+
+{% block content %}
     <div class="home-card">
-        <h1>Album Elo</h1>
+        <h1>MusicElo</h1>
         <p>Rate songs, compare matchups, and build your rankings.</p>
 
         {% if user.is_authenticated %}
             <div class="nav-links">
-                <a href="/ratinglist/">Add a Song</a>
-                <a href="/songlist/">Song List</a>
-                <a href="/versus/">Start Versus</a>
+                <a href="{% url 'songs:add' %}">Add a Song</a>
+                <a href="{% url 'songs:songlist' %}">Song List</a>
+                <a href="{% url 'songs:versus' %}">Start Versus</a>
 
-                <form method="post" action="/logout/">
+                <form method="post" action="{% url 'songs:logout' %}">
                     {% csrf_token %}
                     <button style="margin-top:10px;">Logout</button>
                 </form>
             </div>
         {% else %}
             <div class="nav-links">
-                <a href="/login/">Login</a>
-                <a href="/signup/">Sign Up</a>
+                <a href="{% url 'songs:login' %}">Login</a>
+                <a href="{% url 'songs:signup' %}">Sign Up</a>
             </div>
         {% endif %}
     </div>
-</body>
-</html>
+{% endblock %}

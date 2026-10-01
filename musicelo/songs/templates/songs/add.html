@@ -1,0 +1,31 @@
+{% extends "songs/base.html" %}
+{% load static %}
+
+{% block title %}Add a Song{% endblock %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'songs/add.css' %}">
+{% endblock %}
+
+{% block content %}
+    {% include "songs/_nav.html" %}
+    <main class="center">
+        {% if messages %}
+            <ul class="messages">
+                {% for message in messages %}
+                    <li class="{{ message.tags }}">{{ message }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+
+        <div class="button">
+            <form action="{% url 'songs:add' %}" method="post">
+                {% csrf_token %}
+                <label for="spotifyurl">Spotify Song URL:</label>
+                <input type="text" id="spotifyurl" name="spotifyurl" maxlength="200"
+                       placeholder="https://open.spotify.com/track/..." required>
+                <input type="submit" value="Submit">
+            </form>
+        </div>
+    </main>
+{% endblock %}

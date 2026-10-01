@@ -103,3 +103,8 @@
     height: 125px; 
     position: absolute;
  }
+
+ .vote {
+    padding: 0;
+    cursor: pointer;
+ }

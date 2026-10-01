@@ -1,9 +1,15 @@
 from django.contrib import admin
 
-# Register your models here.
-from django.contrib import admin
+from .models import Rating, Song
 
-from .models import Song, Rating
 
-admin.site.register(Song)
-admin.site.register(Rating)
+@admin.register(Song)
+class SongAdmin(admin.ModelAdmin):
+    list_display = ["name", "artist", "album"]
+    search_fields = ["name", "artist", "album"]
+
+
+@admin.register(Rating)
+class RatingAdmin(admin.ModelAdmin):
+    list_display = ["song", "user", "value"]
+    list_filter = ["user"]

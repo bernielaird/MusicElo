@@ -1,31 +1,26 @@
-{% load static %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <link rel="stylesheet" href="{% static 'songs/styles.css' %}">
-    <link rel="icon" href="{% static 'images/foxv1.png' %}" type="image/png">
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Log In{% endblock %}</title>
-</head>
-<body class="page-layout log-layout">
+{% extends "songs/base.html" %}
+
+{% block title %}Log In{% endblock %}
+{% block body_class %} class="page-layout log-layout"{% endblock %}
+
+{% block content %}
     <h1>Log In</h1>
 
-        <form method="post">
-            {% csrf_token %}
+    <form method="post">
+        {% csrf_token %}
+        {{ form.non_field_errors }}
 
-            <div class="form-group">
-                <label>Username</label>
-                {{ form.username }}
-            </div>
+        <div class="form-group">
+            <label for="{{ form.username.id_for_label }}">Username</label>
+            {{ form.username }}
+        </div>
 
-            <div class="form-group">
-                <label>Password</label>
-                {{ form.password }}
-            </div>
+        <div class="form-group">
+            <label for="{{ form.password.id_for_label }}">Password</label>
+            {{ form.password }}
+        </div>
 
-            <button type="submit">Log In</button>
-        </form>
-    <p>Need an account? <a href="/signup/" class = "clickcolor">Sign up</a></p>
-</body>
-</html>
+        <button type="submit">Log In</button>
+    </form>
+    <p>Need an account? <a href="{% url 'songs:signup' %}" class="clickcolor">Sign up</a></p>
+{% endblock %}

@@ -1,192 +1,104 @@
-from django.shortcuts import render, redirect
-from django.http import HttpResponse
-from .models import Rating, Song
-import math
-from django.views import generic
-import random
-import spotipy
-from spotipy.oauth2 import SpotifyClientCredentials
+from django.contrib import messages
+from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import UserCreationForm
-from urllib.parse import urlparse
-from django.contrib.auth.forms import AuthenticationForm
-from django.contrib.auth import login as auth_login, logout as auth_logout
-from django.shortcuts import render, redirect
+from django.db import transaction
+from django.http import HttpResponseBadRequest
+from django.shortcuts import get_object_or_404, redirect, render
+from django.views.decorators.http import require_POST
 
-class IndexView(generic.ListView):
-    template_name = "songs/index.html"
-    context_object_name = "Song_List"
+from . import spotify
+from .elo import update_ratings
+from .models import Rating, Song
 
-    def get_queryset(self):
-        return Song.objects.order_by("name")
+
+def index(request):
+    return render(request, "songs/index.html")
 
 
 def signup(request):
-    if request.method == "POST":
-        form = UserCreationForm(request.POST)
-        if form.is_valid():
-            form.save()
-            return redirect("/login/")
-    else:
-        form = UserCreationForm()
-
+    form = UserCreationForm(request.POST or None)
+    if request.method == "POST" and form.is_valid():
+        user = form.save()
+        login(request, user)
+        return redirect("songs:add")
     return render(request, "songs/signup.html", {"form": form})
 
 
-def login_view(request):
-    if request.method == "POST":
-        form = AuthenticationForm(request, data=request.POST)
-        if form.is_valid():
-            user = form.get_user()
-            auth_login(request, user)
-            return redirect("/")
-    else:
-        form = AuthenticationForm()
-
-    return render(request, "songs/login.html", {"form": form})
-
-def logout_view(request):
-    auth_logout(request)
-    return redirect("/login/")
-
-'''
-def songlist(request):
-    Song_List = Song.objects.order_by("name")
-    context = {"Song_List": Song_List}
-    return render(request, "songs/songlist.html", context)
-'''
-
 @login_required
-def songlist(request):
-    Rating_List = Rating.objects.filter(user=request.user).order_by("-value")
-    context = {"Rating_List": Rating_List}
-    return render(request, "songs/songlist.html", context)
+def song_list(request):
+    ratings = (
+        Rating.objects.filter(user=request.user)
+        .select_related("song")
+        .order_by("-value")
+    )
+    return render(request, "songs/songlist.html", {"ratings": ratings})
 
 
 @login_required
-def ratinglist(request):
-    Rating_List = Rating.objects.filter(user=request.user).order_by("-value")
-    context = {"Rating_List": Rating_List}
-    return render(request, "songs/ratinglist.html", context)
-
-
-@login_required
-def add(request):
+def add_song(request):
     if request.method != "POST":
-        return redirect("/ratinglist")
+        return render(request, "songs/add.html")
 
-    spotifyurl = request.POST.get("spotifyurl", "").strip()
+    track_id = spotify.parse_track_id(request.POST.get("spotifyurl", ""))
+    if track_id is None:
+        messages.error(request, "Please enter a valid Spotify track URL.")
+        return redirect("songs:add")
 
-    try:
-        parsed = urlparse(spotifyurl)
-        path_parts = parsed.path.strip("/").split("/")
+    song = get_or_create_song(track_id)
+    if song is None:
+        messages.error(request, "Couldn't load that track from Spotify. Please try again.")
+        return redirect("songs:add")
 
-        if len(path_parts) < 2 or path_parts[0] != "track":
-            return HttpResponse("Please enter a valid Spotify track URL.")
-
-        spotifyid = path_parts[1]
-    except Exception:
-        return HttpResponse("Invalid Spotify URL.")
-
-    song = addsong(spotifyid)
-    if not song:
-        return HttpResponse("Could not add song.")
-
-    addrating(request, song)
-    return redirect("/ratinglist")
+    _, created = Rating.objects.get_or_create(user=request.user, song=song)
+    if created:
+        messages.success(request, f"Added {song.name} by {song.artist}.")
+    else:
+        messages.info(request, f"{song.name} is already in your list.")
+    return redirect("songs:add")
 
 
-def addsong(lz_uri):
-    spotify = spotipy.Spotify(
-        client_credentials_manager=SpotifyClientCredentials()
-    )
+def get_or_create_song(track_id):
+    """Return the Song for a Spotify track ID, fetching it from Spotify if it's new."""
+    song = Song.objects.filter(uri=f"spotify:track:{track_id}").first()
+    if song:
+        return song
 
-    try:
-        track = spotify.track(lz_uri)
-    except Exception:
+    track = spotify.fetch_track(track_id)
+    if track is None:
         return None
-
-    existing_song = Song.objects.filter(uri=track["uri"]).first()
-    if existing_song:
-        return existing_song
-
-    return Song.objects.create(
-        name=track["name"],
-        album=track["album"]["name"],
-        artist=track["artists"][0]["name"],
-        coverart=track["album"]["images"][0]["url"],
-        uri=track["uri"],
-    )
-
-
-def addrating(request, song):
-    existing_rating = Rating.objects.filter(
-        user=request.user,
-        song=song
-    ).first()
-
-    if existing_rating:
-        return existing_rating
-
-    return Rating.objects.create(
-        user=request.user,
-        song=song,
-        value=1500,
-    )
+    song, _ = Song.objects.get_or_create(uri=track["uri"], defaults=track)
+    return song
 
 
 @login_required
 def versus(request):
-    ratings = list(Rating.objects.filter(user=request.user).order_by("value"))
+    pair = list(
+        Rating.objects.filter(user=request.user)
+        .select_related("song")
+        .order_by("?")[:2]
+    )
+    if len(pair) < 2:
+        messages.info(request, "Add at least two songs to start comparing.")
+        return redirect("songs:add")
 
-    if len(ratings) < 2:
-        return HttpResponse("You need at least 2 rated songs to use versus.")
-
-    random_ratings = random.sample(ratings, 2)
-
-    context = {
-        "firstsong": random_ratings[0].song.name,
-        "secondsong": random_ratings[1].song.name,
-        "firstartist": random_ratings[0].song.artist,
-        "secondartist": random_ratings[1].song.artist,
-        "firstscore": int(random_ratings[0].value),
-        "secondscore": int(random_ratings[1].value),
-        "firsturi": random_ratings[0].song.uri.split(":")[2],
-        "seconduri": random_ratings[1].song.uri.split(":")[2],
-        "firstid": random_ratings[0].id,
-        "secondid": random_ratings[1].id,
-        "firstimage": random_ratings[0].song.coverart,
-        "secondimage": random_ratings[1].song.coverart,
-    }
-    return render(request, "songs/versus.html", context)
+    first, second = pair
+    return render(request, "songs/versus.html", {"first": first, "second": second})
 
 
 @login_required
-def versus_edit(request, first, second):
-    def Probability(rating1, rating2):
-        return 1.0 / (1 + math.pow(10, (rating1 - rating2) / 400))
+@require_POST
+def vote(request, winner_id, loser_id):
+    if winner_id == loser_id:
+        return HttpResponseBadRequest("A song can't play against itself.")
 
-    def EloRating(first_id, second_id):
-        first_rating = Rating.objects.filter(id=first_id, user=request.user).first()
-        second_rating = Rating.objects.filter(id=second_id, user=request.user).first()
+    with transaction.atomic():
+        user_ratings = Rating.objects.select_for_update().filter(user=request.user)
+        winner = get_object_or_404(user_ratings, id=winner_id)
+        loser = get_object_or_404(user_ratings, id=loser_id)
 
-        if not first_rating or not second_rating:
-            return
+        winner.value, loser.value = update_ratings(winner.value, loser.value)
+        winner.save(update_fields=["value"])
+        loser.save(update_fields=["value"])
 
-        Ra = first_rating.value
-        Rb = second_rating.value
-        K = 30
-
-        Pb = Probability(Ra, Rb)
-        Pa = Probability(Rb, Ra)
-
-        Ra = Ra + K * (1 - Pa)
-        Rb = Rb + K * (0 - Pb)
-
-        first_rating.value = Ra
-        second_rating.value = Rb
-        first_rating.save()
-        second_rating.save()
-
-    EloRating(first, second)
-    return redirect("/versus")
+    return redirect("songs:versus")

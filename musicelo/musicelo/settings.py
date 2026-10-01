@@ -33,12 +33,11 @@ DEBUG = os.getenv("DEBUG") == "True"
 
 ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "").split(",")
 
-SPOTIPY_CLIENT_ID = os.getenv("SPOTIPY_CLIENT_ID")
-SPOTIPY_CLIENT_SECRET = os.getenv("SPOTIPY_CLIENT_SECRET")
+# spotipy reads SPOTIPY_CLIENT_ID and SPOTIPY_CLIENT_SECRET from the environment.
 
-LOGIN_REDIRECT_URL = "/songs/ratinglist/"
-LOGOUT_REDIRECT_URL = "/songs/login/"
-LOGIN_URL = "/songs/login/"
+LOGIN_URL = "songs:login"
+LOGIN_REDIRECT_URL = "songs:index"
+LOGOUT_REDIRECT_URL = "songs:login"
 
 # Application definition
 
