@@ -23,3 +23,5 @@ db.sqlite3
 Thumbs.db
 
 staticfiles/
+
+.cache

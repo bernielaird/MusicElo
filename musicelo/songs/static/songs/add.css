@@ -49,3 +49,26 @@
 .title {
     font-family:open sans,sans-serif;
 }
+
+.messages {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 16px 0;
+}
+
+.messages li {
+    padding: 10px 14px;
+    margin-bottom: 8px;
+    border-radius: 4px;
+    background-color: #e8eef2;
+}
+
+.messages li.error {
+    background-color: #fde8ea;
+    color: #b00020;
+}
+
+.messages li.success {
+    background-color: #e6f4ea;
+    color: #1e6b34;
+}

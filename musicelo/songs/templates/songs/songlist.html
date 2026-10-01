@@ -1,39 +1,27 @@
+{% extends "songs/base.html" %}
 {% load static %}
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <link rel="stylesheet" href="{% static 'songs/styles.css' %}">
+{% block title %}Song List{% endblock %}
+
+{% block extra_css %}
     <link rel="stylesheet" href="{% static 'songs/songlist.css' %}">
-    <link rel="icon" href="{% static 'images/foxv1.png' %}" type="image/png">
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Song List{% endblock %}</title>
-</head>
-<h1><a href="/">BACK </a></h1>
-    {% if Rating_List %}
-        {% for rating in Rating_List %}
-        <div class = container>
-            <img src="{{ rating.song.coverart }}" class="image1"/>
-            <div class = data>
-                <a href="/{{ rating.Song.Value }}/">{{rating.song.name}}: </a>
-                <h3>{{ rating.value }}</h3>
-                <h3>{{ rating.song.artist }}</h3>
-                <h3>{{ rating.song.album }}</h3>
-            </div>   
-        </div>                                                
+{% endblock %}
+
+{% block content %}
+    {% include "songs/_nav.html" %}
+    <main>
+        {% for rating in ratings %}
+            <div class="container">
+                <img src="{{ rating.song.coverart }}" alt="{{ rating.song.album }} cover art" class="image1">
+                <div class="data">
+                    <a href="https://open.spotify.com/track/{{ rating.song.track_id }}" target="_blank" rel="noopener">{{ rating.song.name }}</a>
+                    <h3>{{ rating.value|floatformat:0 }}</h3>
+                    <h3>{{ rating.song.artist }}</h3>
+                    <h3>{{ rating.song.album }}</h3>
+                </div>
+            </div>
+        {% empty %}
+            <p>No songs yet. <a href="{% url 'songs:add' %}" class="clickcolor">Add one</a> to get started.</p>
         {% endfor %}
-    {% else %}
-        <p>No songs found</p>
-{% endif %} 
-
-<footer class="bottom-bar">
-    <div class="bottom-left">
-        <a href="/" class="name">Home</a>
-        <a href="/ratinglist/">Add</a>
-        <a href="/songlist/">List</a>
-        <a href="/versus/">Versus</a>
-    </div>
-</footer>
-
-
+    </main>
+{% endblock %}

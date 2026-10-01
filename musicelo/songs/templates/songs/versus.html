@@ -1,52 +1,46 @@
+{% extends "songs/base.html" %}
 {% load static %}
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <link rel="stylesheet" href="{% static 'songs/styles.css' %}">
+{% block title %}Versus{% endblock %}
+
+{% block extra_css %}
     <link rel="stylesheet" href="{% static 'songs/versus.css' %}">
-    <link rel="icon" href="{% static 'images/foxv1.png' %}" type="image/png">
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Song List{% endblock %}</title>
-</head>
+{% endblock %}
 
-<div class="containerBox">
-    <a href="/versus/{{ firstid }}/{{ secondid }}">
-        <img src="{{ firstimage }}" class="image1">
-    </a>
-    <a href="/versus/{{ secondid }}/{{ firstid }}">
-        <img src="{{ secondimage }}" class="image2">
-    </a>
-    <a class = "back" href="/">BACK</a>
-    <div class = text>
-        <div class = "first">
-            <div>{{firstsong}}: </div>
-            <div>{{ firstartist }}</div>
-            <div>{{ firstscore }}</div>
+{% block content %}
+    <div class="containerBox">
+        <form method="post" action="{% url 'songs:vote' first.id second.id %}">
+            {% csrf_token %}
+            <button type="submit" class="vote" aria-label="Pick {{ first.song.name }}">
+                <img src="{{ first.song.coverart }}" alt="{{ first.song.album }} cover art" class="image1">
+            </button>
+        </form>
+        <form method="post" action="{% url 'songs:vote' second.id first.id %}">
+            {% csrf_token %}
+            <button type="submit" class="vote" aria-label="Pick {{ second.song.name }}">
+                <img src="{{ second.song.coverart }}" alt="{{ second.song.album }} cover art" class="image2">
+            </button>
+        </form>
+        <a class="back" href="{% url 'songs:index' %}">BACK</a>
+        <div class="text">
+            <div class="first">
+                <div>{{ first.song.name }}:</div>
+                <div>{{ first.song.artist }}</div>
+                <div>{{ first.value|floatformat:0 }}</div>
+            </div>
+            <div class="second">
+                <div>{{ second.song.name }}:</div>
+                <div>{{ second.song.artist }}</div>
+                <div>{{ second.value|floatformat:0 }}</div>
+            </div>
         </div>
-        <div class = "second">
-            <div>{{ secondsong }}: </div>
-            <div>{{ secondartist }}</div>
-            <div>{{ secondscore }}</div>
+        <div class="firstembed">
+            <iframe src="https://open.spotify.com/embed/track/{{ first.song.track_id }}?utm_source=oembed" style="top: 0; left: 0; width: 100%; height: 100%; position: absolute; border: 0;" allowfullscreen allow="clipboard-write; encrypted-media; fullscreen; picture-in-picture;"></iframe>
+        </div>
+        <div class="secondembed">
+            <iframe src="https://open.spotify.com/embed/track/{{ second.song.track_id }}?utm_source=oembed" style="top: 0; left: 0; width: 100%; height: 100%; position: absolute; border: 0;" allowfullscreen allow="clipboard-write; encrypted-media; fullscreen; picture-in-picture;"></iframe>
         </div>
     </div>
-    <div class = "firstembed">
-        <iframe src="https://open.spotify.com/embed/track/{{ firsturi }}?utm_source=oembed" style="top: 0; left: 0; width: 100%; height: 100%; position: absolute; border: 0;" allowfullscreen allow="clipboard-write; encrypted-media; fullscreen; picture-in-picture;">
-        </iframe>
-    </div>
 
-    <div class = "secondembed">
-        <iframe src="https://open.spotify.com/embed/track/{{ seconduri }}?utm_source=oembed" style="top: 0; left: 0; width: 100%; height: 100%; position: absolute; border: 0;" allowfullscreen allow="clipboard-write; encrypted-media; fullscreen; picture-in-picture;">
-        </iframe>
-    </div>
-</div>
-
-<footer class="bottom-bar">
-    <div class="bottom-left">
-        <a href="/" class="name">Home</a>
-        <a href="/ratinglist/">Add</a>
-        <a href="/songlist/">List</a>
-        <a href="/versus/">Versus</a>
-    </div>
-</footer>
+    {% include "songs/_nav.html" %}
+{% endblock %}

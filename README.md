@@ -67,7 +67,6 @@ DEBUG=True
 ALLOWED_HOSTS=127.0.0.1,localhost
 SPOTIPY_CLIENT_ID=your-spotify-client-id
 SPOTIPY_CLIENT_SECRET=your-spotify-client-secret
-SPOTIPY_REDIRECT_URI=http://127.0.0.1:8000/callback/
 ```
 
 Then run the migrations and start the server:
@@ -79,6 +78,15 @@ python manage.py runserver
 ```
 
 Open http://127.0.0.1:8000/, sign up, and add at least two songs to start voting.
+
+## Running tests
+
+```bash
+cd musicelo
+python manage.py test
+```
+
+The suite covers the Elo math, Spotify URL parsing, authentication, adding songs (with the Spotify API mocked), and voting, including checks that users can only see and vote on their own ratings.
 
 ## Usage
 
@@ -94,7 +102,10 @@ musicelo/
 ├── musicelo/          # Project settings and root URL config
 └── songs/             # Main app
     ├── models.py      # Song and Rating models
-    ├── views.py       # Auth, Spotify import, versus, and Elo update logic
+    ├── elo.py         # Elo rating math
+    ├── spotify.py     # Spotify URL parsing and track lookup
+    ├── views.py       # Song import, versus matchups, and voting
+    ├── tests.py
     ├── urls.py
     ├── templates/songs/
     └── static/songs/
