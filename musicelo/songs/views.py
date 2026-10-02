@@ -40,12 +40,17 @@ def add_song(request):
     if request.method != "POST":
         return render(request, "songs/add.html")
 
-    track_id = spotify.parse_track_id(request.POST.get("spotifyurl", ""))
-    if track_id is None:
-        messages.error(request, "Please enter a valid Spotify track URL.")
+    parsed = spotify.parse_spotify_url(request.POST.get("spotifyurl", ""))
+    if parsed is None:
+        messages.error(request, "Please enter a valid Spotify track or playlist URL.")
         return redirect("songs:add")
 
-    song = get_or_create_song(track_id)
+    kind, spotify_id = parsed
+    if kind == "playlist":
+        add_playlist(request, spotify_id)
+        return redirect("songs:add")
+
+    song = get_or_create_song(spotify_id)
     if song is None:
         messages.error(request, "Couldn't load that track from Spotify. Please try again.")
         return redirect("songs:add")
@@ -56,6 +61,50 @@ def add_song(request):
     else:
         messages.info(request, f"{song.name} is already in your list.")
     return redirect("songs:add")
+
+
+def add_playlist(request, playlist_id):
+    """Add every track in a Spotify playlist to the user's list."""
+    tracks = spotify.fetch_playlist_tracks(playlist_id)
+    if tracks is None:
+        messages.error(
+            request,
+            "Couldn't load that playlist from Spotify. Make sure it's public and try again.",
+        )
+        return
+    if not tracks:
+        messages.info(request, "That playlist doesn't have any songs to add.")
+        return
+
+    # A playlist can list the same track more than once; keep the first copy.
+    tracks_by_uri = {track["uri"]: track for track in reversed(tracks)}
+    uris = list(tracks_by_uri)
+
+    with transaction.atomic():
+        Song.objects.bulk_create(
+            [Song(**track) for track in tracks_by_uri.values()], ignore_conflicts=True
+        )
+        songs = Song.objects.filter(uri__in=uris)
+        already_rated = set(
+            Rating.objects.filter(user=request.user, song__in=songs).values_list(
+                "song_id", flat=True
+            )
+        )
+        new_ratings = [
+            Rating(user=request.user, song=song)
+            for song in songs
+            if song.id not in already_rated
+        ]
+        Rating.objects.bulk_create(new_ratings, ignore_conflicts=True)
+
+    added, skipped = len(new_ratings), len(already_rated)
+    if added:
+        message = f"Added {added} song{'s' if added != 1 else ''} from the playlist."
+        if skipped:
+            message += f" {skipped} {'were' if skipped != 1 else 'was'} already in your list."
+        messages.success(request, message)
+    else:
+        messages.info(request, "Every song in that playlist is already in your list.")
 
 
 def get_or_create_song(track_id):

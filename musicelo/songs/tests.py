@@ -7,7 +7,7 @@ from django.urls import reverse
 
 from .elo import INITIAL_RATING, K_FACTOR, expected_score, update_ratings
 from .models import Rating, Song
-from .spotify import parse_track_id
+from .spotify import parse_spotify_url, parse_track_id
 
 TRACK_ID = "4uLU6hMCjMI75M1A2tKUQC"
 
@@ -188,13 +188,87 @@ class AddSongTests(TestCase):
         response = self.post_track("https://example.com/not-spotify")
         fetch_track.assert_not_called()
         self.assertFalse(Song.objects.exists())
-        self.assertContains(response, "valid Spotify track URL")
+        self.assertContains(response, "valid Spotify track or playlist URL")
 
     @patch("songs.spotify.fetch_track", return_value=None)
     def test_spotify_failure_shows_error(self, fetch_track):
         response = self.post_track()
         self.assertFalse(Song.objects.exists())
         self.assertContains(response, "Couldn&#x27;t load that track")
+
+
+class ParseSpotifyUrlTests(SimpleTestCase):
+    def test_tracks_and_playlists(self):
+        cases = {
+            f"https://open.spotify.com/track/{TRACK_ID}?si=abc": ("track", TRACK_ID),
+            f"https://open.spotify.com/playlist/{TRACK_ID}?si=abc": ("playlist", TRACK_ID),
+            f"https://open.spotify.com/intl-de/playlist/{TRACK_ID}": ("playlist", TRACK_ID),
+            f"spotify:playlist:{TRACK_ID}": ("playlist", TRACK_ID),
+        }
+        for value, expected in cases.items():
+            with self.subTest(value=value):
+                self.assertEqual(parse_spotify_url(value), expected)
+
+    def test_other_kinds_are_rejected(self):
+        for value in [
+            f"https://open.spotify.com/album/{TRACK_ID}",
+            f"spotify:artist:{TRACK_ID}",
+            "https://open.spotify.com/playlist/tooshort",
+        ]:
+            with self.subTest(value=value):
+                self.assertIsNone(parse_spotify_url(value))
+
+
+class AddPlaylistTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user("alice", password="pw")
+        self.client.force_login(self.user)
+        self.url = reverse("songs:add")
+        self.tracks = [
+            {
+                "name": f"Song {n}",
+                "artist": "Artist",
+                "album": "Album",
+                "coverart": "",
+                "uri": f"spotify:track:{n:022d}",
+            }
+            for n in range(3)
+        ]
+
+    def post_playlist(self):
+        return self.client.post(
+            self.url,
+            {"spotifyurl": f"https://open.spotify.com/playlist/{TRACK_ID}"},
+            follow=True,
+        )
+
+    @patch("songs.spotify.fetch_playlist_tracks")
+    def test_adds_every_song(self, fetch_playlist_tracks):
+        fetch_playlist_tracks.return_value = self.tracks
+        response = self.post_playlist()
+
+        fetch_playlist_tracks.assert_called_once_with(TRACK_ID)
+        self.assertEqual(Song.objects.count(), 3)
+        self.assertEqual(Rating.objects.filter(user=self.user).count(), 3)
+        self.assertContains(response, "Added 3 songs from the playlist.")
+
+    @patch("songs.spotify.fetch_playlist_tracks")
+    def test_skips_songs_already_in_list_and_duplicates(self, fetch_playlist_tracks):
+        song = Song.objects.create(**self.tracks[0])
+        Rating.objects.create(user=self.user, song=song, value=1234)
+        fetch_playlist_tracks.return_value = self.tracks + [self.tracks[1]]
+        response = self.post_playlist()
+
+        self.assertEqual(Song.objects.count(), 3)
+        self.assertEqual(Rating.objects.filter(user=self.user).count(), 3)
+        self.assertEqual(Rating.objects.get(song=song).value, 1234)
+        self.assertContains(response, "Added 2 songs from the playlist. 1 was already in your list.")
+
+    @patch("songs.spotify.fetch_playlist_tracks", return_value=None)
+    def test_spotify_failure_shows_error(self, fetch_playlist_tracks):
+        response = self.post_playlist()
+        self.assertFalse(Song.objects.exists())
+        self.assertContains(response, "Couldn&#x27;t load that playlist")
 
 
 class VersusTests(TestCase):

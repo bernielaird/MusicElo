@@ -21,9 +21,9 @@
         <div class="button">
             <form action="{% url 'songs:add' %}" method="post">
                 {% csrf_token %}
-                <label for="spotifyurl">Spotify Song URL:</label>
+                <label for="spotifyurl">Spotify Song or Playlist URL:</label>
                 <input type="text" id="spotifyurl" name="spotifyurl" maxlength="200"
-                       placeholder="https://open.spotify.com/track/..." required>
+                       placeholder="https://open.spotify.com/track/... or /playlist/..." required>
                 <input type="submit" value="Submit">
             </form>
         </div>
