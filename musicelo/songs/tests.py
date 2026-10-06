@@ -6,7 +6,8 @@ from django.test import SimpleTestCase, TestCase
 from django.urls import reverse
 
 from .elo import INITIAL_RATING, K_FACTOR, expected_score, update_ratings
-from .models import Rating, Song
+from . import spotify
+from .models import Rating, Song, SpotifyAccount
 from .spotify import parse_spotify_url, parse_track_id
 
 TRACK_ID = "4uLU6hMCjMI75M1A2tKUQC"
@@ -247,7 +248,7 @@ class AddPlaylistTests(TestCase):
         fetch_playlist_tracks.return_value = self.tracks
         response = self.post_playlist()
 
-        fetch_playlist_tracks.assert_called_once_with(TRACK_ID)
+        fetch_playlist_tracks.assert_called_once_with(TRACK_ID, None)
         self.assertEqual(Song.objects.count(), 3)
         self.assertEqual(Rating.objects.filter(user=self.user).count(), 3)
         self.assertContains(response, "Added 3 songs from the playlist.")
@@ -350,3 +351,210 @@ class SongListTests(TestCase):
 
         names = [r.song.name for r in response.context["ratings"]]
         self.assertEqual(names, ["Song 2", "Song 1"])
+
+
+def make_track(n):
+    return {
+        "name": f"Song {n}",
+        "artist": "Artist",
+        "album": "Album",
+        "coverart": "",
+        "uri": f"spotify:track:{n:022d}",
+    }
+
+
+class SpotifyConnectTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user("alice", password="pw")
+        self.client.force_login(self.user)
+
+    def start_flow(self, state="abc"):
+        session = self.client.session
+        session["spotify_oauth_state"] = state
+        session.save()
+
+    def callback(self, **params):
+        return self.client.get(reverse("songs:spotify_callback"), params, follow=True)
+
+    def test_spotify_page_requires_login(self):
+        self.client.logout()
+        response = self.client.get(reverse("songs:spotify"))
+        self.assertRedirects(response, f"{reverse('songs:login')}?next={reverse('songs:spotify')}")
+
+    def test_page_offers_to_connect(self):
+        response = self.client.get(reverse("songs:spotify"))
+        self.assertContains(response, "Connect Spotify")
+
+    @patch("songs.spotify.authorize_url", return_value="https://accounts.spotify.com/authorize?x=1")
+    def test_connect_redirects_to_spotify_with_state(self, authorize_url):
+        response = self.client.post(reverse("songs:spotify_connect"))
+        self.assertRedirects(response, authorize_url.return_value, fetch_redirect_response=False)
+        authorize_url.assert_called_once_with(self.client.session["spotify_oauth_state"])
+
+    def test_connect_requires_post(self):
+        self.assertEqual(self.client.get(reverse("songs:spotify_connect")).status_code, 405)
+
+    @patch("songs.spotify.exchange_code")
+    def test_callback_saves_account(self, exchange_code):
+        token = {"access_token": "a", "refresh_token": "r", "expires_at": 1}
+        exchange_code.return_value = (token, {"id": "alice123", "display_name": "Alice"})
+        self.start_flow()
+
+        response = self.callback(code="c", state="abc")
+
+        exchange_code.assert_called_once_with("c")
+        account = SpotifyAccount.objects.get(user=self.user)
+        self.assertEqual(account.spotify_id, "alice123")
+        self.assertEqual(account.token_info, token)
+        self.assertContains(response, "Connected Spotify account Alice")
+        self.assertNotIn("spotify_oauth_state", self.client.session)
+
+    @patch("songs.spotify.exchange_code")
+    def test_callback_rejects_wrong_state(self, exchange_code):
+        self.start_flow("abc")
+        response = self.callback(code="c", state="evil")
+        exchange_code.assert_not_called()
+        self.assertFalse(SpotifyAccount.objects.exists())
+        self.assertContains(response, "expired")
+
+    @patch("songs.spotify.exchange_code")
+    def test_callback_without_started_flow_is_rejected(self, exchange_code):
+        self.callback(code="c", state="")
+        exchange_code.assert_not_called()
+        self.assertFalse(SpotifyAccount.objects.exists())
+
+    @patch("songs.spotify.exchange_code")
+    def test_user_declining_access(self, exchange_code):
+        self.start_flow()
+        response = self.callback(error="access_denied", state="abc")
+        exchange_code.assert_not_called()
+        self.assertContains(response, "not connected")
+
+    @patch("songs.spotify.exchange_code", return_value=None)
+    def test_failed_exchange_shows_error(self, exchange_code):
+        self.start_flow()
+        response = self.callback(code="c", state="abc")
+        self.assertFalse(SpotifyAccount.objects.exists())
+        self.assertContains(response, "Couldn&#x27;t connect to Spotify")
+
+    def test_disconnect_deletes_account(self):
+        SpotifyAccount.objects.create(user=self.user, spotify_id="alice123")
+        self.client.post(reverse("songs:spotify_disconnect"))
+        self.assertFalse(SpotifyAccount.objects.exists())
+
+
+class SpotifyImportTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user("alice", password="pw")
+        self.client.force_login(self.user)
+        self.account = SpotifyAccount.objects.create(
+            user=self.user, spotify_id="alice123", display_name="Alice"
+        )
+        self.url = reverse("songs:spotify_import")
+
+    @patch("songs.spotify.fetch_user_playlists")
+    def test_page_lists_playlists(self, fetch_user_playlists):
+        fetch_user_playlists.return_value = [
+            {"id": TRACK_ID, "name": "Road Trip", "owner": "Alice", "image": "", "track_count": 12}
+        ]
+        response = self.client.get(reverse("songs:spotify"))
+        self.assertContains(response, "Connected as <strong>Alice</strong>")
+        self.assertContains(response, "Road Trip")
+        self.assertContains(response, "12 songs")
+
+    @patch("songs.spotify.fetch_user_playlists", return_value=None)
+    def test_page_handles_playlist_failure(self, fetch_user_playlists):
+        response = self.client.get(reverse("songs:spotify"))
+        self.assertContains(response, "Couldn&#x27;t load your playlists")
+
+    @patch("songs.spotify.fetch_saved_tracks")
+    def test_imports_liked_songs(self, fetch_saved_tracks):
+        fetch_saved_tracks.return_value = [make_track(1), make_track(2)]
+        response = self.client.post(self.url, {"source": "liked"}, follow=True)
+        fetch_saved_tracks.assert_called_once_with(self.account)
+        self.assertEqual(Rating.objects.filter(user=self.user).count(), 2)
+        self.assertContains(response, "Added 2 songs from your Liked Songs.")
+
+    @patch("songs.spotify.fetch_top_tracks")
+    def test_imports_top_tracks(self, fetch_top_tracks):
+        fetch_top_tracks.return_value = [make_track(1)]
+        response = self.client.post(self.url, {"source": "top", "time_range": "short_term"}, follow=True)
+        fetch_top_tracks.assert_called_once_with(self.account, "short_term")
+        self.assertContains(response, "Added 1 song from your top tracks from the last 4 weeks.")
+
+    @patch("songs.spotify.fetch_playlist_tracks")
+    def test_imports_playlist_as_user(self, fetch_playlist_tracks):
+        fetch_playlist_tracks.return_value = [make_track(1)]
+        self.client.post(self.url, {"source": "playlist", "playlist_id": TRACK_ID})
+        fetch_playlist_tracks.assert_called_once_with(TRACK_ID, self.account)
+        self.assertEqual(Rating.objects.filter(user=self.user).count(), 1)
+
+    @patch("songs.spotify.fetch_playlist_tracks")
+    def test_pasted_playlist_url_uses_connected_account(self, fetch_playlist_tracks):
+        fetch_playlist_tracks.return_value = [make_track(1)]
+        self.client.post(reverse("songs:add"), {"spotifyurl": f"spotify:playlist:{TRACK_ID}"})
+        fetch_playlist_tracks.assert_called_once_with(TRACK_ID, self.account)
+
+    def test_rejects_unknown_sources(self):
+        for data in [
+            {"source": "nope"},
+            {"source": "top", "time_range": "forever"},
+            {"source": "playlist", "playlist_id": "../bad"},
+        ]:
+            with self.subTest(data=data):
+                self.assertEqual(self.client.post(self.url, data).status_code, 400)
+
+    @patch("songs.spotify.fetch_saved_tracks", return_value=None)
+    def test_spotify_failure_shows_error(self, fetch_saved_tracks):
+        response = self.client.post(self.url, {"source": "liked"}, follow=True)
+        self.assertFalse(Rating.objects.exists())
+        self.assertContains(response, "Couldn&#x27;t load your Liked Songs")
+
+    @patch("songs.spotify.fetch_saved_tracks")
+    def test_import_requires_connected_account(self, fetch_saved_tracks):
+        self.account.delete()
+        response = self.client.post(self.url, {"source": "liked"}, follow=True)
+        fetch_saved_tracks.assert_not_called()
+        self.assertContains(response, "Connect your Spotify account first")
+
+
+class SpotifyClientTests(TestCase):
+    def test_account_cache_handler_round_trips_tokens(self):
+        user = User.objects.create_user("alice", password="pw")
+        account = SpotifyAccount.objects.create(user=user, spotify_id="alice123")
+        handler = spotify.AccountCacheHandler(account)
+        self.assertIsNone(handler.get_cached_token())
+
+        handler.save_token_to_cache({"access_token": "new", "refresh_token": "r"})
+        account.refresh_from_db()
+        self.assertEqual(account.token_info["access_token"], "new")
+
+    def test_collect_tracks_follows_pages_and_skips_non_tracks(self):
+        def track(n, **extra):
+            return {
+                "type": "track",
+                "id": str(n),
+                "name": f"Song {n}",
+                "uri": f"spotify:track:{n}",
+                "artists": [{"name": "Artist"}],
+                "album": {"name": "Album", "images": []},
+                **extra,
+            }
+
+        second = {"items": [{"track": track(3)}], "next": None}
+        first = {
+            "items": [
+                {"track": track(1)},
+                {"track": None},
+                {"track": track(2, is_local=True)},
+                {"track": {"type": "episode", "id": "e"}},
+            ],
+            "next": "page-2",
+        }
+
+        class FakeClient:
+            def next(self, page):
+                return second
+
+        tracks = spotify._collect_tracks(FakeClient(), first, lambda entry: entry["track"])
+        self.assertEqual([t["name"] for t in tracks], ["Song 1", "Song 3"])

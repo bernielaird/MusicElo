@@ -1,0 +1,95 @@
+.spotify-section {
+    font-family: open sans, sans-serif;
+    margin-bottom: 32px;
+}
+
+.spotify-section h2 {
+    font-size: 20px;
+    margin-bottom: 12px;
+}
+
+.spotify-section button {
+    background-color: #b0bec7;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 10px 18px;
+}
+
+.spotify-section button:hover {
+    background-color: #91999e;
+}
+
+.spotify-section button.spotify {
+    background-color: #1db954;
+}
+
+.spotify-section button.spotify:hover {
+    background-color: #1aa34a;
+}
+
+.spotify-section button.secondary {
+    background-color: transparent;
+    color: #8e4909;
+    border: 1px solid #8e4909;
+}
+
+.spotify-section.account {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+form.inline {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+form.inline select {
+    flex: 1;
+    margin: 0;
+}
+
+.playlist {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 8px 0;
+    border-bottom: 1px solid #e2e2e2;
+}
+
+.playlist-cover {
+    width: 56px;
+    height: 56px;
+    object-fit: cover;
+    border-radius: 4px;
+    background-color: #ddd;
+    flex-shrink: 0;
+}
+
+.playlist-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.playlist-info a {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.playlist-info span {
+    color: #666;
+    font-size: 14px;
+}
+
+.visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+}

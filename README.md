@@ -13,6 +13,7 @@ MusicElo is a Django web app that builds a personal ranking of your songs from h
 - **Head-to-head voting:** you're shown two of your songs side by side with cover art and pick the one you prefer.
 - **Elo-based ranking:** every song starts at 1500, and each vote adjusts both songs' ratings based on how surprising the result was.
 - **Spotify integration:** paste a Spotify track URL and the app gets the title, artist, album, and cover art through the Spotify Web API.
+- **Spotify account connection:** link your Spotify account to import your Liked Songs, your top tracks, or any of your playlists, including private ones.
 - **User accounts:** each user has their own song list and their own ratings.
 
 ## How the ranking works
@@ -67,7 +68,13 @@ DEBUG=True
 ALLOWED_HOSTS=127.0.0.1,localhost
 SPOTIPY_CLIENT_ID=your-spotify-client-id
 SPOTIPY_CLIENT_SECRET=your-spotify-client-secret
+SPOTIPY_REDIRECT_URI=http://127.0.0.1:8000/callback/
 ```
+
+To let users connect their Spotify accounts, open your app in the Spotify Developer Dashboard and:
+
+1. Under **Redirect URIs**, add exactly the `SPOTIPY_REDIRECT_URI` value above. Spotify rejects `localhost`, so use `127.0.0.1`.
+2. While the app is in development mode, add each person who will connect under **User Management**. Spotify refuses sign-ins from accounts that aren't on that list.
 
 Then run the migrations and start the server:
 
@@ -90,7 +97,7 @@ The suite covers the Elo math, Spotify URL parsing, authentication, adding songs
 
 ## Usage
 
-1. **Add songs:** on the **Add** page, paste a Spotify track link (e.g. `https://open.spotify.com/track/...`).
+1. **Add songs:** on the **Add** page, paste a Spotify track link (e.g. `https://open.spotify.com/track/...`). Or open the **Spotify** page, connect your account, and import your Liked Songs, top tracks, or playlists.
 2. **Vote:** on the **Versus** page, click the song you prefer. A new matchup loads right away.
 3. **See your ranking:** the **List** page shows all your songs sorted by rating.
 
@@ -103,7 +110,7 @@ musicelo/
 └── songs/             # Main app
     ├── models.py      # Song and Rating models
     ├── elo.py         # Elo rating math
-    ├── spotify.py     # Spotify URL parsing and track lookup
+    ├── spotify.py     # Spotify URL parsing, track lookup, and account OAuth
     ├── views.py       # Song import, versus matchups, and voting
     ├── tests.py
     ├── urls.py
