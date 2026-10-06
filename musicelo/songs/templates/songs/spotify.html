@@ -1,0 +1,96 @@
+{% extends "songs/base.html" %}
+{% load static %}
+
+{% block title %}Spotify{% endblock %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'songs/add.css' %}">
+    <link rel="stylesheet" href="{% static 'songs/spotify.css' %}">
+{% endblock %}
+
+{% block content %}
+    {% include "songs/_nav.html" %}
+    <main class="center">
+        {% if messages %}
+            <ul class="messages">
+                {% for message in messages %}
+                    <li class="{{ message.tags }}">{{ message }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+
+        {% if account %}
+            <section class="spotify-section account">
+                <p>Connected as <strong>{{ account.display_name|default:account.spotify_id }}</strong></p>
+                <form action="{% url 'songs:spotify_disconnect' %}" method="post">
+                    {% csrf_token %}
+                    <button type="submit" class="secondary">Disconnect</button>
+                </form>
+            </section>
+
+            <section class="spotify-section">
+                <h2>Liked Songs</h2>
+                <form action="{% url 'songs:spotify_import' %}" method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="source" value="liked">
+                    <button type="submit">Add all my Liked Songs</button>
+                </form>
+            </section>
+
+            <section class="spotify-section">
+                <h2>Top tracks</h2>
+                <form action="{% url 'songs:spotify_import' %}" method="post" class="inline">
+                    {% csrf_token %}
+                    <input type="hidden" name="source" value="top">
+                    <label for="time_range" class="visually-hidden">Time range</label>
+                    <select id="time_range" name="time_range">
+                        {% for value, label in top_ranges.items %}
+                            <option value="{{ value }}"{% if value == "medium_term" %} selected{% endif %}>{{ label|capfirst }}</option>
+                        {% endfor %}
+                    </select>
+                    <button type="submit">Add top 50</button>
+                </form>
+            </section>
+
+            <section class="spotify-section">
+                <h2>Your playlists</h2>
+                {% for playlist in playlists %}
+                    <div class="playlist">
+                        {% if playlist.image %}
+                            <img src="{{ playlist.image }}" alt="" class="playlist-cover">
+                        {% else %}
+                            <div class="playlist-cover"></div>
+                        {% endif %}
+                        <div class="playlist-info">
+                            <a href="https://open.spotify.com/playlist/{{ playlist.id }}" target="_blank" rel="noopener">{{ playlist.name }}</a>
+                            <span>
+                                {{ playlist.owner }}{% if playlist.track_count is not None %} · {{ playlist.track_count }} song{{ playlist.track_count|pluralize }}{% endif %}
+                            </span>
+                        </div>
+                        <form action="{% url 'songs:spotify_import' %}" method="post">
+                            {% csrf_token %}
+                            <input type="hidden" name="source" value="playlist">
+                            <input type="hidden" name="playlist_id" value="{{ playlist.id }}">
+                            <button type="submit">Add</button>
+                        </form>
+                    </div>
+                {% empty %}
+                    {% if playlists is not None %}<p>No playlists in your Spotify library.</p>{% endif %}
+                {% endfor %}
+            </section>
+        {% else %}
+            <section class="spotify-section">
+                <h2>Connect Spotify</h2>
+                <p>
+                    Link your Spotify account to add your Liked Songs, your top tracks
+                    and any of your playlists, including private ones. MusicElo only
+                    asks for read access and never changes anything in your account.
+                </p>
+                <form action="{% url 'songs:spotify_connect' %}" method="post">
+                    {% csrf_token %}
+                    <button type="submit" class="spotify">Connect Spotify</button>
+                </form>
+            </section>
+        {% endif %}
+    </main>
+{% endblock %}
