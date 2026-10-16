@@ -165,6 +165,21 @@ def get_or_create_song(track_id):
 
 
 @login_required
+def account(request):
+    """Show the signed-in user's account details and listening stats."""
+    ratings = Rating.objects.filter(user=request.user).select_related("song")
+    return render(
+        request,
+        "songs/account.html",
+        {
+            "song_count": ratings.count(),
+            "top_rating": ratings.order_by("-value").first(),
+            "spotify_account": SpotifyAccount.objects.filter(user=request.user).first(),
+        },
+    )
+
+
+@login_required
 def versus(request):
     pair = list(
         Rating.objects.filter(user=request.user)

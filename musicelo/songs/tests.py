@@ -364,6 +364,34 @@ class SongListTests(TestCase):
         self.assertNotContains(self.client.get(url, {"view": "cards"}), "song-table")
 
 
+class AccountTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user("alice", password="pw")
+        self.url = reverse("songs:account")
+
+    def test_requires_login(self):
+        response = self.client.get(self.url)
+        self.assertRedirects(response, f"{reverse('songs:login')}?next={self.url}")
+
+    def test_shows_profile_and_stats(self):
+        Rating.objects.create(user=self.user, song=make_song(1), value=1400)
+        Rating.objects.create(user=self.user, song=make_song(2), value=1650)
+        SpotifyAccount.objects.create(user=self.user, spotify_id="alice123", display_name="Alice")
+        self.client.force_login(self.user)
+
+        response = self.client.get(self.url)
+
+        self.assertContains(response, "alice")
+        self.assertEqual(response.context["song_count"], 2)
+        self.assertContains(response, "Song 2 by Artist 2 (1650)")
+        self.assertContains(response, "Connected as <strong>Alice</strong>")
+
+    def test_account_link_only_when_signed_in(self):
+        self.assertNotContains(self.client.get(reverse("songs:index")), self.url)
+        self.client.force_login(self.user)
+        self.assertContains(self.client.get(reverse("songs:index")), self.url)
+
+
 def make_track(n):
     return {
         "name": f"Song {n}",

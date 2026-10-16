@@ -1,0 +1,51 @@
+main h1 {
+    margin-top: 0;
+}
+
+.account-card {
+    font-family: open sans, sans-serif;
+    background-color: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 20px 24px;
+    margin-bottom: 20px;
+}
+
+.account-card h2 {
+    font-size: 18px;
+    margin: 0 0 12px;
+}
+
+.account-card dl {
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    gap: 8px 24px;
+    margin: 0;
+}
+
+.account-card dt {
+    color: var(--text-muted);
+}
+
+.account-card dd {
+    margin: 0;
+    overflow-wrap: anywhere;
+}
+
+.account-note {
+    margin: 12px 0 0;
+}
+
+button.logout {
+    background-color: transparent;
+    color: var(--accent);
+    border: 1px solid var(--accent);
+    border-radius: 4px;
+    padding: 10px 18px;
+    margin-bottom: 40px;
+}
+
+button.logout:hover {
+    color: var(--accent-hover);
+    border-color: var(--accent-hover);
+}

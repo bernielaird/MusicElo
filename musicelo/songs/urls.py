@@ -16,6 +16,7 @@ urlpatterns = [
     path("spotify/import/", views.spotify_import, name="spotify_import"),
     # Must match SPOTIPY_REDIRECT_URI and a redirect URI registered on the Spotify app.
     path("callback/", views.spotify_callback, name="spotify_callback"),
+    path("account/", views.account, name="account"),
     path("signup/", views.signup, name="signup"),
     path(
         "login/",

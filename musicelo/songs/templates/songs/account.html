@@ -1,0 +1,63 @@
+{% extends "songs/base.html" %}
+{% load static %}
+
+{% block title %}Account{% endblock %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'songs/account.css' %}">
+{% endblock %}
+
+{% block content %}
+    {% include "songs/_nav.html" %}
+    <main class="center">
+        <h1>Account</h1>
+
+        <section class="account-card">
+            <h2>Profile</h2>
+            <dl>
+                <dt>Username</dt>
+                <dd>{{ user.username }}</dd>
+                {% if user.email %}
+                    <dt>Email</dt>
+                    <dd>{{ user.email }}</dd>
+                {% endif %}
+                <dt>Member since</dt>
+                <dd>{{ user.date_joined|date:"F j, Y" }}</dd>
+                <dt>Last login</dt>
+                <dd>{{ user.last_login|date:"F j, Y, g:i a"|default:"Never" }}</dd>
+            </dl>
+        </section>
+
+        <section class="account-card">
+            <h2>Your songs</h2>
+            <dl>
+                <dt>Songs rated</dt>
+                <dd><a href="{% url 'songs:songlist' %}" class="clickcolor">{{ song_count }}</a></dd>
+                {% if top_rating %}
+                    <dt>Top song</dt>
+                    <dd>{{ top_rating.song.name }} by {{ top_rating.song.artist }} ({{ top_rating.value|floatformat:0 }})</dd>
+                {% endif %}
+            </dl>
+        </section>
+
+        <section class="account-card">
+            <h2>Spotify</h2>
+            <dl>
+                <dt>Status</dt>
+                {% if spotify_account %}
+                    <dd>Connected as <strong>{{ spotify_account.display_name|default:spotify_account.spotify_id }}</strong></dd>
+                {% else %}
+                    <dd>Not connected</dd>
+                {% endif %}
+            </dl>
+            <p class="account-note">
+                <a href="{% url 'songs:add' %}" class="clickcolor">{% if spotify_account %}Manage on the Add page{% else %}Connect on the Add page{% endif %}</a>
+            </p>
+        </section>
+
+        <form method="post" action="{% url 'songs:logout' %}">
+            {% csrf_token %}
+            <button type="submit" class="logout">Log out</button>
+        </form>
+    </main>
+{% endblock %}
