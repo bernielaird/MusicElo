@@ -33,20 +33,43 @@ def signup(request):
     return render(request, "songs/signup.html", {"form": form})
 
 
+LIST_VIEWS = ("cards", "table")
+
+
 @login_required
 def song_list(request):
+    # Remember the chosen layout so the list opens the same way next time.
+    if request.GET.get("view") in LIST_VIEWS:
+        request.session["songlist_view"] = request.GET["view"]
+    view = request.session.get("songlist_view", "cards")
+
     ratings = (
         Rating.objects.filter(user=request.user)
         .select_related("song")
         .order_by("-value")
     )
-    return render(request, "songs/songlist.html", {"ratings": ratings})
+    return render(request, "songs/songlist.html", {"ratings": ratings, "view": view})
 
 
 @login_required
 def add_song(request):
+    """Add songs by pasting a Spotify link or importing from a connected account."""
     if request.method != "POST":
-        return render(request, "songs/add.html")
+        account = SpotifyAccount.objects.filter(user=request.user).first()
+        playlists = None
+        if account:
+            playlists = spotify.fetch_user_playlists(account)
+            if playlists is None:
+                messages.error(
+                    request,
+                    "Couldn't load your playlists from Spotify. "
+                    "Try disconnecting and connecting your account again.",
+                )
+        return render(
+            request,
+            "songs/add.html",
+            {"account": account, "playlists": playlists, "top_ranges": TOP_TRACK_LABELS},
+        )
 
     parsed = spotify.parse_spotify_url(request.POST.get("spotifyurl", ""))
     if parsed is None:
@@ -175,26 +198,6 @@ def vote(request, winner_id, loser_id):
 
 
 @login_required
-def spotify_account(request):
-    """Show the user's Spotify connection and what they can import from it."""
-    account = SpotifyAccount.objects.filter(user=request.user).first()
-    playlists = None
-    if account:
-        playlists = spotify.fetch_user_playlists(account)
-        if playlists is None:
-            messages.error(
-                request,
-                "Couldn't load your playlists from Spotify. "
-                "Try disconnecting and connecting your account again.",
-            )
-    return render(
-        request,
-        "songs/spotify.html",
-        {"account": account, "playlists": playlists, "top_ranges": TOP_TRACK_LABELS},
-    )
-
-
-@login_required
 @require_POST
 def spotify_connect(request):
     """Send the user to Spotify to approve access to their account."""
@@ -209,16 +212,16 @@ def spotify_callback(request):
     expected_state = request.session.pop("spotify_oauth_state", None)
     if not expected_state or request.GET.get("state") != expected_state:
         messages.error(request, "That Spotify sign-in link has expired. Please try again.")
-        return redirect("songs:spotify")
+        return redirect("songs:add")
 
     if "error" in request.GET or "code" not in request.GET:
         messages.info(request, "Spotify account not connected.")
-        return redirect("songs:spotify")
+        return redirect("songs:add")
 
     result = spotify.exchange_code(request.GET["code"])
     if result is None:
         messages.error(request, "Couldn't connect to Spotify. Please try again.")
-        return redirect("songs:spotify")
+        return redirect("songs:add")
 
     token_info, profile = result
     account, _ = SpotifyAccount.objects.update_or_create(
@@ -232,7 +235,7 @@ def spotify_callback(request):
     messages.success(
         request, f"Connected Spotify account {account.display_name or account.spotify_id}."
     )
-    return redirect("songs:spotify")
+    return redirect("songs:add")
 
 
 @login_required
@@ -240,7 +243,7 @@ def spotify_callback(request):
 def spotify_disconnect(request):
     SpotifyAccount.objects.filter(user=request.user).delete()
     messages.success(request, "Disconnected your Spotify account.")
-    return redirect("songs:spotify")
+    return redirect("songs:add")
 
 
 @login_required
@@ -250,7 +253,7 @@ def spotify_import(request):
     account = SpotifyAccount.objects.filter(user=request.user).first()
     if account is None:
         messages.error(request, "Connect your Spotify account first.")
-        return redirect("songs:spotify")
+        return redirect("songs:add")
 
     source = request.POST.get("source")
     if source == "liked":
@@ -268,4 +271,4 @@ def spotify_import(request):
         messages.error(request, f"Couldn't load {label} from Spotify. Please try again.")
     else:
         add_tracks(request, tracks, label)
-    return redirect("songs:spotify")
+    return redirect("songs:add")
