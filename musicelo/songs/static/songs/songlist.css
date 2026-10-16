@@ -18,3 +18,81 @@
 .title {
     font-family:open sans,sans-serif;
 }
+
+.empty {
+    margin: 15px 25px;
+}
+
+.view-switch {
+    display: inline-flex;
+    margin: 0 25px 10px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.view-switch a {
+    padding: 8px 16px;
+    font-size: 15px;
+}
+
+.view-switch a + a {
+    border-left: 1px solid var(--border);
+}
+
+.view-switch a.active {
+    background-color: var(--surface);
+    color: var(--accent);
+}
+
+.song-table {
+    width: calc(100% - 50px);
+    margin: 0 25px 40px;
+    border-collapse: collapse;
+    font-family: open sans, sans-serif;
+}
+
+.song-table th,
+.song-table td {
+    padding: 8px 12px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+    vertical-align: middle;
+}
+
+.song-table th {
+    font-size: 14px;
+    color: var(--text-muted);
+    font-weight: 600;
+}
+
+.song-table tbody tr:hover {
+    background-color: var(--surface);
+}
+
+.song-table .num {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    width: 1%;
+    white-space: nowrap;
+}
+
+.song-table .thumb {
+    display: block;
+    width: 48px;
+    height: 48px;
+    object-fit: cover;
+    border-radius: 4px;
+}
+
+.song-table a:hover {
+    color: var(--accent-hover);
+}
+
+.visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+}

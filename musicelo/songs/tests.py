@@ -352,6 +352,17 @@ class SongListTests(TestCase):
         names = [r.song.name for r in response.context["ratings"]]
         self.assertEqual(names, ["Song 2", "Song 1"])
 
+    def test_table_view_is_remembered(self):
+        user = User.objects.create_user("alice", password="pw")
+        Rating.objects.create(user=user, song=make_song(1))
+        self.client.force_login(user)
+        url = reverse("songs:songlist")
+
+        self.assertNotContains(self.client.get(url), "song-table")
+        self.assertContains(self.client.get(url, {"view": "table"}), "song-table")
+        self.assertContains(self.client.get(url), "song-table")
+        self.assertNotContains(self.client.get(url, {"view": "cards"}), "song-table")
+
 
 def make_track(n):
     return {
@@ -367,6 +378,10 @@ class SpotifyConnectTests(TestCase):
     def setUp(self):
         self.user = User.objects.create_user("alice", password="pw")
         self.client.force_login(self.user)
+        # Connecting redirects to the add page, which loads playlists from Spotify.
+        playlists = patch("songs.spotify.fetch_user_playlists", return_value=[])
+        playlists.start()
+        self.addCleanup(playlists.stop)
 
     def start_flow(self, state="abc"):
         session = self.client.session
@@ -376,13 +391,8 @@ class SpotifyConnectTests(TestCase):
     def callback(self, **params):
         return self.client.get(reverse("songs:spotify_callback"), params, follow=True)
 
-    def test_spotify_page_requires_login(self):
-        self.client.logout()
-        response = self.client.get(reverse("songs:spotify"))
-        self.assertRedirects(response, f"{reverse('songs:login')}?next={reverse('songs:spotify')}")
-
     def test_page_offers_to_connect(self):
-        response = self.client.get(reverse("songs:spotify"))
+        response = self.client.get(reverse("songs:add"))
         self.assertContains(response, "Connect Spotify")
 
     @patch("songs.spotify.authorize_url", return_value="https://accounts.spotify.com/authorize?x=1")
@@ -451,20 +461,24 @@ class SpotifyImportTests(TestCase):
             user=self.user, spotify_id="alice123", display_name="Alice"
         )
         self.url = reverse("songs:spotify_import")
+        # Imports redirect to the add page, which loads playlists from Spotify.
+        playlists = patch("songs.spotify.fetch_user_playlists", return_value=[])
+        playlists.start()
+        self.addCleanup(playlists.stop)
 
     @patch("songs.spotify.fetch_user_playlists")
     def test_page_lists_playlists(self, fetch_user_playlists):
         fetch_user_playlists.return_value = [
             {"id": TRACK_ID, "name": "Road Trip", "owner": "Alice", "image": "", "track_count": 12}
         ]
-        response = self.client.get(reverse("songs:spotify"))
-        self.assertContains(response, "Connected as <strong>Alice</strong>")
+        response = self.client.get(reverse("songs:add"))
+        self.assertContains(response, "Connected to Spotify as <strong>Alice</strong>")
         self.assertContains(response, "Road Trip")
         self.assertContains(response, "12 songs")
 
     @patch("songs.spotify.fetch_user_playlists", return_value=None)
     def test_page_handles_playlist_failure(self, fetch_user_playlists):
-        response = self.client.get(reverse("songs:spotify"))
+        response = self.client.get(reverse("songs:add"))
         self.assertContains(response, "Couldn&#x27;t load your playlists")
 
     @patch("songs.spotify.fetch_saved_tracks")
