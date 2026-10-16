@@ -17,10 +17,20 @@
 </head>
 <body{% block body_class %}{% endblock %}>
     {% block content %}{% endblock %}
-    <button type="button" class="theme-toggle" aria-label="Toggle dark mode">
-        <span class="icon-dark" aria-hidden="true">&#9790;</span>
-        <span class="icon-light" aria-hidden="true">&#9728;</span>
-    </button>
+    <div class="top-actions">
+        {% if user.is_authenticated %}
+            <a href="{% url 'songs:account' %}" class="icon-button" aria-label="Account" title="Account">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+                    <circle cx="12" cy="8" r="4"/>
+                    <path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/>
+                </svg>
+            </a>
+        {% endif %}
+        <button type="button" class="icon-button theme-toggle" aria-label="Toggle dark mode" title="Toggle dark mode">
+            <span class="icon-dark" aria-hidden="true">&#9790;</span>
+            <span class="icon-light" aria-hidden="true">&#9728;</span>
+        </button>
+    </div>
     <script>
         document.querySelector(".theme-toggle").addEventListener("click", function () {
             var root = document.documentElement;
