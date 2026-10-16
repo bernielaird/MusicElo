@@ -3,14 +3,16 @@
     padding: 12px 20px;
     margin: 8px 0;
     display: inline-block;
-    border: 1px solid #ccc;
+    border: 1px solid var(--input-border);
+    background-color: var(--surface);
+    color: var(--text);
     border-radius: 4px;
     box-sizing: border-box;
 }
   
 .button input[type=submit] {
     width: 100%;
-    background-color: #b0bec7;
+    background-color: var(--button);
     color: white;
     padding: 14px 20px;
     margin: 8px 0;
@@ -20,12 +22,12 @@
 }
   
 .button input[type=submit]:hover {
-    background-color: #91999e;
+    background-color: var(--button-hover);
 }
   
 .button div {
     border-radius: 5px;
-    background-color: #f2f2f2;
+    background-color: var(--surface-2);
     padding: 20px;
 }
 
@@ -60,20 +62,20 @@
     padding: 10px 14px;
     margin-bottom: 8px;
     border-radius: 4px;
-    background-color: #e8eef2;
+    background-color: var(--message-bg);
 }
 
 .messages li.error {
-    background-color: #fde8ea;
-    color: #b00020;
+    background-color: var(--error-bg);
+    color: var(--error-text);
 }
 
 .messages li.success {
-    background-color: #e6f4ea;
-    color: #1e6b34;
+    background-color: var(--success-bg);
+    color: var(--success-text);
 }
 
 .hint {
     font-family: open sans, sans-serif;
-    color: #555;
+    color: var(--text-muted);
 }

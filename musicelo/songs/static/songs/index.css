@@ -4,29 +4,29 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-    background: #f4f4f4;
+    background: var(--bg);
     font-family: Arial, sans-serif;
 }
 
 .home-card {
     width: 100%;
     max-width: 420px;
-    background: white;
+    background: var(--surface);
     padding: 40px 32px;
     border-radius: 16px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 10px 30px var(--shadow);
     text-align: center;
 }
 
 .home-card h1 {
     margin: 0 0 10px 0;
     font-size: 2rem;
-    color: #111;
+    color: var(--text);
 }
 
 .home-card p {
     margin: 0 0 28px 0;
-    color: #666;
+    color: var(--text-muted);
     font-size: 0.95rem;
 }
 

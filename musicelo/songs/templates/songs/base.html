@@ -5,10 +5,31 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}{% endblock %} | MusicElo</title>
+    <script>
+        // Apply the saved theme before first paint to avoid a flash of the wrong theme.
+        try {
+            var theme = localStorage.getItem("theme");
+            if (theme) document.documentElement.dataset.theme = theme;
+        } catch (e) {}
+    </script>
     <link rel="stylesheet" href="{% static 'songs/styles.css' %}">
     {% block extra_css %}{% endblock %}
 </head>
 <body{% block body_class %}{% endblock %}>
     {% block content %}{% endblock %}
+    <button type="button" class="theme-toggle" aria-label="Toggle dark mode">
+        <span class="icon-dark" aria-hidden="true">&#9790;</span>
+        <span class="icon-light" aria-hidden="true">&#9728;</span>
+    </button>
+    <script>
+        document.querySelector(".theme-toggle").addEventListener("click", function () {
+            var root = document.documentElement;
+            var current = root.dataset.theme ||
+                (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+            var next = current === "dark" ? "light" : "dark";
+            root.dataset.theme = next;
+            try { localStorage.setItem("theme", next); } catch (e) {}
+        });
+    </script>
 </body>
 </html>
