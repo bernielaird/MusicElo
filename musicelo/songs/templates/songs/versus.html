@@ -3,11 +3,14 @@
 {% block title %}Versus{% endblock %}
 
 {% block content %}
-    <p class="note">Pick the song you like more. Click its cover.</p>
+    <p class="note versus-help">
+        Pick the song you like more: click its cover, or press &larr; / &rarr;.
+        <a href="{% url 'songs:versus' %}">Skip this pair</a>
+    </p>
 
     <div class="versus">
-        <div>
-            <form method="post" action="{% url 'songs:vote' first.id second.id %}">
+        <div class="versus-side">
+            <form method="post" action="{% url 'songs:vote' first.id second.id %}" id="pick-left">
                 {% csrf_token %}
                 <button type="submit" class="vote" aria-label="Pick {{ first.song.name }}">
                     <img src="{{ first.song.coverart }}" alt="{{ first.song.album }} cover art">
@@ -15,12 +18,16 @@
             </form>
             <div class="versus-info">
                 <div class="song-name">{{ first.song.name }}</div>
-                <div class="muted">{{ first.song.artist }} · <span class="rating">{{ first.value|floatformat:0 }}</span></div>
+                <div class="muted">{{ first.song.artist }} · {{ first.song.album }}</div>
+                <div class="rating">{{ first.value|floatformat:0 }}</div>
             </div>
             <iframe src="https://open.spotify.com/embed/track/{{ first.song.track_id }}?utm_source=oembed" title="Play {{ first.song.name }}" allow="clipboard-write; encrypted-media; fullscreen; picture-in-picture;" loading="lazy"></iframe>
         </div>
-        <div>
-            <form method="post" action="{% url 'songs:vote' second.id first.id %}">
+
+        <div class="versus-vs" aria-hidden="true">vs</div>
+
+        <div class="versus-side">
+            <form method="post" action="{% url 'songs:vote' second.id first.id %}" id="pick-right">
                 {% csrf_token %}
                 <button type="submit" class="vote" aria-label="Pick {{ second.song.name }}">
                     <img src="{{ second.song.coverart }}" alt="{{ second.song.album }} cover art">
@@ -28,9 +35,19 @@
             </form>
             <div class="versus-info">
                 <div class="song-name">{{ second.song.name }}</div>
-                <div class="muted">{{ second.song.artist }} · <span class="rating">{{ second.value|floatformat:0 }}</span></div>
+                <div class="muted">{{ second.song.artist }} · {{ second.song.album }}</div>
+                <div class="rating">{{ second.value|floatformat:0 }}</div>
             </div>
             <iframe src="https://open.spotify.com/embed/track/{{ second.song.track_id }}?utm_source=oembed" title="Play {{ second.song.name }}" allow="clipboard-write; encrypted-media; fullscreen; picture-in-picture;" loading="lazy"></iframe>
         </div>
     </div>
+
+    <script>
+        // Arrow keys pick a side (not while typing anywhere).
+        document.addEventListener("keydown", function (e) {
+            if (e.altKey || e.ctrlKey || e.metaKey || /INPUT|SELECT|TEXTAREA/.test(document.activeElement.tagName)) return;
+            var form = e.key === "ArrowLeft" ? "pick-left" : e.key === "ArrowRight" ? "pick-right" : null;
+            if (form) { e.preventDefault(); document.getElementById(form).requestSubmit(); }
+        });
+    </script>
 {% endblock %}

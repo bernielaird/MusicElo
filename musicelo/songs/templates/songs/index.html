@@ -13,12 +13,32 @@
         <div class="actions">
             <a class="button" href="{% url 'songs:versus' %}">start versus</a>
             <a class="button secondary" href="{% url 'songs:add' %}">add songs</a>
-            <a class="button secondary" href="{% url 'songs:songlist' %}">your list</a>
             <form method="post" action="{% url 'songs:logout' %}">
                 {% csrf_token %}
                 <button type="submit" class="secondary">log out</button>
             </form>
         </div>
+
+        {% if top_ratings %}
+            <h2>Your top {{ top_ratings|length }}</h2>
+            {% for rating in top_ratings %}
+                <div class="song-row">
+                    <span class="rank">{{ forloop.counter }}</span>
+                    <img src="{{ rating.song.coverart }}" alt="{{ rating.song.album }} cover art" class="cover">
+                    <div class="song-info">
+                        <a href="https://open.spotify.com/track/{{ rating.song.track_id }}" target="_blank" rel="noopener">{{ rating.song.name }}</a>
+                        <span>{{ rating.song.artist }} · {{ rating.song.album }}</span>
+                    </div>
+                    <span class="rating">{{ rating.value|floatformat:0 }}</span>
+                </div>
+            {% endfor %}
+            <p class="note">
+                {{ song_count }} song{{ song_count|pluralize }} rated.
+                <a href="{% url 'songs:songlist' %}">See your full list</a>
+            </p>
+        {% else %}
+            <p class="note">No songs yet. <a href="{% url 'songs:add' %}">Add some</a> to get started.</p>
+        {% endif %}
     {% else %}
         <div class="actions">
             <a class="button" href="{% url 'songs:login' %}">log in</a>

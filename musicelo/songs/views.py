@@ -21,7 +21,11 @@ TOP_TRACK_LABELS = {
 
 
 def index(request):
-    return render(request, "songs/index.html")
+    context = {}
+    if request.user.is_authenticated:
+        ratings = Rating.objects.filter(user=request.user).select_related("song")
+        context = {"song_count": ratings.count(), "top_ratings": ratings.order_by("-value")[:5]}
+    return render(request, "songs/index.html", context)
 
 
 def signup(request):
