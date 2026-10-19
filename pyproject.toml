@@ -1,0 +1,24 @@
+# Packages the songs app so another Django project can install it, e.g. the personal website:
+#   musicelo @ git+https://github.com/bernielaird/MusicElo.git@main
+# The musicelo/ Django project (settings, manage.py) is for running MusicElo on its own and isn't packaged.
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "musicelo"
+version = "1.0.0"
+description = "Rank your music with head-to-head Elo matchups (the songs Django app)."
+license = "MIT"
+requires-python = ">=3.12"
+dependencies = [
+    "Django>=6.1,<6.2",
+    "spotipy>=2.25",
+]
+
+[tool.setuptools.packages.find]
+where = ["musicelo"]
+include = ["songs*"]
+
+[tool.setuptools.package-data]
+songs = ["templates/**/*", "static/**/*"]

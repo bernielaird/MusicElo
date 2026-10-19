@@ -118,6 +118,16 @@ musicelo/
     └── static/songs/
 ```
 
+## Running inside another Django site
+
+The live version runs inside my personal website at [bernielaird.com/musicelo](https://www.bernielaird.com/musicelo/). The code stays in this repo: `pyproject.toml` packages the `songs` app, and the website installs it like any other dependency:
+
+```
+musicelo @ git+https://github.com/bernielaird/MusicElo.git@main
+```
+
+The host site adds `"songs.apps.SongsConfig"` to `INSTALLED_APPS`, mounts `path("musicelo/", include("songs.urls"))`, and sets `LOGIN_URL = "songs:login"`, `LOGIN_REDIRECT_URL = "songs:index"` and `LOGOUT_REDIRECT_URL = "songs:login"`. It also needs the `SPOTIPY_*` environment variables, with `SPOTIPY_REDIRECT_URI` pointing at its own `/musicelo/callback/`. Pushing here doesn't update the site on its own: redeploy the website to pick up the latest `main`.
+
 ## License
 
 Released under the [MIT License](MIT-LICENSE.txt).
