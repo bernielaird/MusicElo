@@ -355,15 +355,16 @@ form.inline input[type=text] { flex: 1; min-width: 200px; }
     grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
     align-items: start;
     gap: 20px;
-    max-width: 760px;
 }
 
+/* Covers fill their column but stay short enough that the whole matchup (players included) fits on screen. */
 .versus-side { min-width: 0; }
+.versus-side > * { max-width: max(220px, calc(100vh - 520px)); }
 .versus form { margin: 0; }
 
 .versus-vs {
     align-self: center;
-    margin-top: -120px;  /* centre on the covers rather than the whole column */
+    margin-top: -130px;  /* centre on the covers rather than the whole column */
     color: var(--faint);
     font-size: 18px;
 }
@@ -371,7 +372,6 @@ form.inline input[type=text] { flex: 1; min-width: 200px; }
 .vote {
     display: block;
     width: 100%;
-    max-width: 340px;
     padding: 0;
     border: 1px solid var(--border);
     background: none;
@@ -381,15 +381,16 @@ form.inline input[type=text] { flex: 1; min-width: 200px; }
 .vote img { display: block; width: 100%; aspect-ratio: 1; object-fit: cover; }
 .vote:hover img { filter: brightness(90%); }
 
-.versus-info { margin: 12px 0 10px; line-height: 1.5; max-width: 340px; }
+.versus-info { margin: 12px 0 10px; line-height: 1.5; }
+/* One line each, so both players line up even when a title is long (the full title is on hover). */
+.versus-info > div { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .versus-info .song-name { font-size: 17px; }
-.versus-info .muted { font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.versus-info .muted { font-size: 14px; }
 
 /* Spotify draws its player with rounded corners; round the frame to match so no corners show through. */
 .versus iframe {
     display: block;
     width: 100%;
-    max-width: 340px;
     height: 80px;
     border: 0;
     border-radius: 12px;

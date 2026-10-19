@@ -17,8 +17,8 @@
                 </button>
             </form>
             <div class="versus-info">
-                <div class="song-name">{{ first.song.name }}</div>
-                <div class="muted">{{ first.song.artist }} · {{ first.song.album }}</div>
+                <div class="song-name" title="{{ first.song.name }}">{{ first.song.name }}</div>
+                <div class="muted" title="{{ first.song.artist }} · {{ first.song.album }}">{{ first.song.artist }} · {{ first.song.album }}</div>
                 <div class="rating">{{ first.value|floatformat:0 }}</div>
             </div>
             <iframe src="https://open.spotify.com/embed/track/{{ first.song.track_id }}?utm_source=oembed" title="Play {{ first.song.name }}" allow="clipboard-write; encrypted-media; fullscreen; picture-in-picture;" loading="lazy"></iframe>
@@ -34,8 +34,8 @@
                 </button>
             </form>
             <div class="versus-info">
-                <div class="song-name">{{ second.song.name }}</div>
-                <div class="muted">{{ second.song.artist }} · {{ second.song.album }}</div>
+                <div class="song-name" title="{{ second.song.name }}">{{ second.song.name }}</div>
+                <div class="muted" title="{{ second.song.artist }} · {{ second.song.album }}">{{ second.song.artist }} · {{ second.song.album }}</div>
                 <div class="rating">{{ second.value|floatformat:0 }}</div>
             </div>
             <iframe src="https://open.spotify.com/embed/track/{{ second.song.track_id }}?utm_source=oembed" title="Play {{ second.song.name }}" allow="clipboard-write; encrypted-media; fullscreen; picture-in-picture;" loading="lazy"></iframe>
