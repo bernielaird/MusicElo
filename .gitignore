@@ -25,3 +25,6 @@ Thumbs.db
 staticfiles/
 
 .cache
+# Packaging build output (pip install of this repo)
+*.egg-info/
+build/

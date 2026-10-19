@@ -1,8 +1,0 @@
-Metadata-Version: 2.4
-Name: musicelo
-Version: 1.0.0
-Summary: Rank your music with head-to-head Elo matchups (the songs Django app).
-License-Expression: MIT
-Requires-Python: >=3.12
-Requires-Dist: Django<6.2,>=6.1
-Requires-Dist: spotipy>=2.25
