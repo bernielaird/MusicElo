@@ -196,7 +196,7 @@ button.spotify { background: #1db954; border-color: #1db954; color: #fff; }
 
 .actions form { margin: 0; }
 
-input[type=text], input[type=password], input[type=email], select {
+input[type=text], input[type=password], input[type=email], input[type=search], select {
     padding: 8px 10px;
     border: 1px solid var(--input-border);
     background: var(--input-bg);
@@ -279,16 +279,51 @@ form.inline input[type=text] { flex: 1; min-width: 200px; }
 .box dt { color: var(--muted); }
 .box dd { margin: 0; overflow-wrap: anywhere; }
 
-/* Tabs (song list layout) */
-.tabs { display: flex; gap: 8px; margin: 0 0 16px; }
+/* Tabs (song list layout, add page) */
+.tabs { display: flex; gap: 8px; margin: 0 0 16px; flex-wrap: wrap; }
 
-.tabs a {
+.tabs a, .tabs .tab {
     font-size: 14px;
     padding: 5px 12px;
     border: 1px solid var(--border);
+    background: none;
+    color: var(--text);
 }
 
-.tabs a.active { border-color: var(--accent); color: var(--accent); }
+.tabs .tab:hover { border-color: var(--accent); color: var(--accent); opacity: 1; }
+.tabs a.active, .tabs .tab.active { border-color: var(--accent); color: var(--accent); }
+
+/* Add page */
+.section-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin: 40px 0 12px;
+}
+
+.section-head h2 { margin: 0 !important; }
+
+.spotify-status { margin: 0; font-size: 14px; color: var(--muted); }
+.spotify-status strong { color: var(--text); font-weight: normal; }
+
+/* A button that looks like a link: for small repeated actions, so they don't fill the page with boxes. */
+.text-button, .text-button:hover {
+    padding: 0 0 0 8px;
+    border: 0;
+    background: none;
+    color: var(--accent);
+    font-size: 14px;
+    opacity: 1;
+}
+
+.text-button:hover { color: var(--accent-hover); text-decoration: underline; }
+
+.tab-panel { min-height: 120px; }
+.tab-panel > p:first-child { margin-top: 0; }
+
+input.filter { width: 100%; max-width: 320px; margin-bottom: 8px; }
 
 /* Song rows (list and playlists) */
 .song-row, .playlist {
@@ -429,3 +464,6 @@ form.inline input[type=text] { flex: 1; min-width: 200px; }
     .versus { grid-template-columns: 1fr; }
     .versus-vs { margin: 0; text-align: center; }
 }
+
+/* The hidden attribute always wins (e.g. playlist rows filtered out by the search box). */
+[hidden] { display: none !important; }
