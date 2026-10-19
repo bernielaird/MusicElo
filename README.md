@@ -37,7 +37,7 @@ with `K = 30`. If a high-rated song beats a low-rated one, the ratings barely ch
 ## Tech stack
 
 - **Backend:** Python 3.12, Django 6.1
-- **Frontend:** Django templates, HTML, CSS
+- **Frontend:** Django templates, HTML, CSS (styled to match [bernielaird.com](https://www.bernielaird.com), with light and dark themes)
 - **Database:** SQLite
 - **External API:** Spotify Web API, accessed with [Spotipy](https://spotipy.readthedocs.io/)
 
@@ -126,7 +126,7 @@ The live version runs inside my personal website at [bernielaird.com/musicelo](h
 musicelo @ git+https://github.com/bernielaird/MusicElo.git@main
 ```
 
-The host site adds `"songs.apps.SongsConfig"` to `INSTALLED_APPS`, mounts `path("musicelo/", include("songs.urls"))`, and sets `LOGIN_URL = "songs:login"`, `LOGIN_REDIRECT_URL = "songs:index"` and `LOGOUT_REDIRECT_URL = "songs:login"`. It also needs the `SPOTIPY_*` environment variables, with `SPOTIPY_REDIRECT_URI` pointing at its own `/musicelo/callback/`. Pushing here doesn't update the site on its own: redeploy the website to pick up the latest `main`.
+The host site adds `"songs.apps.SongsConfig"` to `INSTALLED_APPS`, mounts `path("musicelo/", include("songs.urls"))`, and sets `LOGIN_URL = "songs:login"`, `LOGIN_REDIRECT_URL = "songs:index"` and `LOGOUT_REDIRECT_URL = "songs:login"`. It also needs the `SPOTIPY_*` environment variables, with `SPOTIPY_REDIRECT_URI` pointing at its own `/musicelo/callback/`. It can also add its own `songs/_site_footer.html` template (empty in this package) to show its navigation bar on MusicElo's pages. Pushing here doesn't update the site on its own: redeploy the website to pick up the latest `main`.
 
 ## License
 

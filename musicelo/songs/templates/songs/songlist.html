@@ -1,61 +1,54 @@
 {% extends "songs/base.html" %}
-{% load static %}
 
 {% block title %}Song List{% endblock %}
 
-{% block extra_css %}
-    <link rel="stylesheet" href="{% static 'songs/songlist.css' %}">
-{% endblock %}
-
 {% block content %}
-    {% include "songs/_nav.html" %}
-    <main>
-        {% if ratings %}
-            <div class="view-switch" role="group" aria-label="Layout">
-                <a href="?view=cards"{% if view == "cards" %} class="active" aria-current="true"{% endif %}>Cards</a>
-                <a href="?view=table"{% if view == "table" %} class="active" aria-current="true"{% endif %}>Table</a>
-            </div>
-        {% endif %}
+    <h2>Your list</h2>
+    {% if ratings %}
+        <nav class="tabs" aria-label="Layout">
+            <a href="?view=cards"{% if view == "cards" %} class="active" aria-current="true"{% endif %}>covers</a>
+            <a href="?view=table"{% if view == "table" %} class="active" aria-current="true"{% endif %}>table</a>
+        </nav>
+    {% endif %}
 
-        {% if view == "table" and ratings %}
-            <table class="song-table">
-                <thead>
+    {% if view == "table" and ratings %}
+        <table class="song-table">
+            <thead>
+                <tr>
+                    <th class="num">#</th>
+                    <th><span class="visually-hidden">Cover</span></th>
+                    <th>Song</th>
+                    <th>Artist</th>
+                    <th>Album</th>
+                    <th class="num">Rating</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for rating in ratings %}
                     <tr>
-                        <th class="num">#</th>
-                        <th><span class="visually-hidden">Cover</span></th>
-                        <th>Song</th>
-                        <th>Artist</th>
-                        <th>Album</th>
-                        <th class="num">Rating</th>
+                        <td class="num">{{ forloop.counter }}</td>
+                        <td><img src="{{ rating.song.coverart }}" alt="" class="thumb"></td>
+                        <td><a href="https://open.spotify.com/track/{{ rating.song.track_id }}" target="_blank" rel="noopener">{{ rating.song.name }}</a></td>
+                        <td>{{ rating.song.artist }}</td>
+                        <td class="muted">{{ rating.song.album }}</td>
+                        <td class="num">{{ rating.value|floatformat:0 }}</td>
                     </tr>
-                </thead>
-                <tbody>
-                    {% for rating in ratings %}
-                        <tr>
-                            <td class="num">{{ forloop.counter }}</td>
-                            <td><img src="{{ rating.song.coverart }}" alt="" class="thumb"></td>
-                            <td><a href="https://open.spotify.com/track/{{ rating.song.track_id }}" target="_blank" rel="noopener">{{ rating.song.name }}</a></td>
-                            <td>{{ rating.song.artist }}</td>
-                            <td>{{ rating.song.album }}</td>
-                            <td class="num">{{ rating.value|floatformat:0 }}</td>
-                        </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        {% else %}
-            {% for rating in ratings %}
-                <div class="container">
-                    <img src="{{ rating.song.coverart }}" alt="{{ rating.song.album }} cover art" class="image1">
-                    <div class="data">
-                        <a href="https://open.spotify.com/track/{{ rating.song.track_id }}" target="_blank" rel="noopener">{{ rating.song.name }}</a>
-                        <h3>{{ rating.value|floatformat:0 }}</h3>
-                        <h3>{{ rating.song.artist }}</h3>
-                        <h3>{{ rating.song.album }}</h3>
-                    </div>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        {% for rating in ratings %}
+            <div class="song-row">
+                <span class="rank">{{ forloop.counter }}</span>
+                <img src="{{ rating.song.coverart }}" alt="{{ rating.song.album }} cover art" class="cover">
+                <div class="song-info">
+                    <a href="https://open.spotify.com/track/{{ rating.song.track_id }}" target="_blank" rel="noopener">{{ rating.song.name }}</a>
+                    <span>{{ rating.song.artist }} · {{ rating.song.album }}</span>
                 </div>
-            {% empty %}
-                <p class="empty">No songs yet. <a href="{% url 'songs:add' %}" class="clickcolor">Add one</a> to get started.</p>
-            {% endfor %}
-        {% endif %}
-    </main>
+                <span class="rating">{{ rating.value|floatformat:0 }}</span>
+            </div>
+        {% empty %}
+            <p class="note">No songs yet. <a href="{% url 'songs:add' %}">Add one</a> to get started.</p>
+        {% endfor %}
+    {% endif %}
 {% endblock %}

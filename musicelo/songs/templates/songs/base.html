@@ -7,36 +7,56 @@
     <title>{% block title %}{% endblock %} | MusicElo</title>
     <script>
         // Apply the saved theme before first paint to avoid a flash of the wrong theme.
-        try {
-            var theme = localStorage.getItem("theme");
-            if (theme) document.documentElement.dataset.theme = theme;
-        } catch (e) {}
+        try { var t = localStorage.getItem("theme"); if (t) document.documentElement.dataset.theme = t; } catch (e) {}
     </script>
+    <link rel="preload" href="{% static 'songs/fonts/tstar-mono-round.woff2' %}" as="font" type="font/woff2" crossorigin>
     <link rel="stylesheet" href="{% static 'songs/styles.css' %}">
     {% block extra_css %}{% endblock %}
 </head>
-<body{% block body_class %}{% endblock %}>
-    {% block content %}{% endblock %}
-    <div class="top-actions">
-        {% if user.is_authenticated %}
-            <a href="{% url 'songs:account' %}" class="icon-button" aria-label="Account" title="Account">
-                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
-                    <circle cx="12" cy="8" r="4"/>
-                    <path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/>
-                </svg>
-            </a>
-        {% endif %}
-        <button type="button" class="icon-button theme-toggle" aria-label="Toggle dark mode" title="Toggle dark mode">
-            <span class="icon-dark" aria-hidden="true">&#9790;</span>
-            <span class="icon-light" aria-hidden="true">&#9728;</span>
-        </button>
-    </div>
+<body>
+    <button class="theme-toggle" type="button" aria-label="Switch between light and dark mode"></button>
+    <header class="title">
+        <h1>musicelo</h1>
+    </header>
+
+    <main>
+        <div class="me-content">
+            <nav class="me-nav">
+                {% with name=request.resolver_match.url_name %}
+                <a href="{% url 'songs:index' %}"{% if name == "index" %} class="active"{% endif %}>home</a>
+                {% if user.is_authenticated %}
+                    <a href="{% url 'songs:add' %}"{% if name == "add" %} class="active"{% endif %}>add</a>
+                    <a href="{% url 'songs:songlist' %}"{% if name == "songlist" %} class="active"{% endif %}>list</a>
+                    <a href="{% url 'songs:versus' %}"{% if name == "versus" %} class="active"{% endif %}>versus</a>
+                    <a href="{% url 'songs:account' %}"{% if name == "account" %} class="active"{% endif %}>account</a>
+                {% else %}
+                    <a href="{% url 'songs:login' %}"{% if name == "login" %} class="active"{% endif %}>log in</a>
+                    <a href="{% url 'songs:signup' %}"{% if name == "signup" %} class="active"{% endif %}>sign up</a>
+                {% endif %}
+                {% endwith %}
+            </nav>
+
+            {% if messages %}
+                <ul class="messages">
+                    {% for message in messages %}
+                        <li class="{{ message.tags }}">{{ message }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+
+            {% block content %}{% endblock %}
+        </div>
+    </main>
+
+    {# Empty here. A site that hosts MusicElo can provide its own songs/_site_footer.html (e.g. its nav bar). #}
+    {% include "songs/_site_footer.html" %}
+
     <script>
         document.querySelector(".theme-toggle").addEventListener("click", function () {
             var root = document.documentElement;
-            var current = root.dataset.theme ||
-                (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
-            var next = current === "dark" ? "light" : "dark";
+            var dark = root.dataset.theme ? root.dataset.theme === "dark"
+                                          : matchMedia("(prefers-color-scheme: dark)").matches;
+            var next = dark ? "light" : "dark";
             root.dataset.theme = next;
             try { localStorage.setItem("theme", next); } catch (e) {}
         });
